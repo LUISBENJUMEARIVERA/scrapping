@@ -1,197 +1,124 @@
-# 🧬 Tecnoquímicas AI — Enterprise Web Scraper & Cognitive RAG Knowledge Studio
+# 🧬 Tecnoquímicas AI — Agente Conversacional Autónomo (Módulo 1 $\to$ Módulo 2)
 
 [![CI](https://github.com/LUISBENJUMEARIVERA/scrapping/actions/workflows/ci.yml/badge.svg)](https://github.com/LUISBENJUMEARIVERA/scrapping/actions/workflows/ci.yml)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Astral uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
-[![Tests](https://img.shields.io/badge/tests-15%20passed%20(100%25)-success)](tests/)
-[![Architecture](https://img.shields.io/badge/architecture-Archify%20Interactive-blueviolet)](docs/arquitectura.html)
-[![SDD](https://img.shields.io/badge/specification-IEEE%201016%20SDD-002F6C)](docs/SDD.md)
+[![FastAPI](https://img.shields.io/badge/FastAPI-SSE%20Streaming-009688?logo=fastapi)](api/main.py)
+[![React 19 + Vite](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite-61DAFB?logo=react)](frontend/)
+[![LangGraph](https://img.shields.io/badge/LangGraph-ReAct%20%2B%20HITL-0B1F3A)](src/agent/graph.py)
+[![Qdrant](https://img.shields.io/badge/Qdrant-Hybrid%20RRF%20ANN-DC244C)](src/agent/rag_qdrant.py)
+[![Tests](https://img.shields.io/badge/tests-41%20passed%20(100%25)-success)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> **Language / Idioma:** **English (Default)** | [🇪🇸 Leer en Español](#-versión-en-español)
+> **Maestría en Inteligencia Artificial y Ciencias de Datos — Universidad Autónoma de Occidente (UAO 2026-2S)**  
+> **Grupo 7 — Tecnoquímicas S.A.** | **Autor:** Luis Antonio Benjumea Rivera  
+> **Verdad central:** [`CONSTITUTION.md`](CONSTITUTION.md) · **Arquitectura y Comparativas M2:** [`docs/architecture_m2.md`](docs/architecture_m2.md) · **Especificación:** [`specs/modulo2_agent_spec.md`](specs/modulo2_agent_spec.md)
 
 ---
 
-## 🗺️ System Architecture (Interactive Archify Map)
+## 🎯 De Módulo 1 a Módulo 2: Sistema Agéntico Nivel Agencia de IA
 
-Interactive, standalone runtime architecture map generated with **Archify**. Open it in your browser: [`docs/arquitectura.html`](docs/arquitectura.html).
+Este proyecto evoluciona el núcleo de extracción web y LCEL del Módulo 1 (`v1.0.0-gold`) hacia un **Agente Conversacional Autónomo Desacoplado**, diseñado para superar el antipatrón del "chat ingenuo":
 
-[![Arquitectura del Proyecto (Tema Oscuro)](docs/arquitectura.visual-check.2048x1320.dark.png)](docs/arquitectura.html)
-
-*Features: Pan & Zoom, Dark/Light theme toggle, live relationship tracing, search, guided views, and full visual check compliance.*
-
----
-
-## 📑 Software Design Description (SDD)
-
-The full technical specification adhering to **IEEE 1016-2009** is available at:
-👉 **[Software Design Description (SDD) — docs/SDD.md](docs/SDD.md)**
-
-It covers:
-- System boundaries, C4 container & component decompositions.
-- Resilient ingestion protocols (Playwright headless Chromium + dual-stage Trafilatura/BS4 extraction).
-- Sovereign inference with Ollama (`llama3.2`) and LCEL negative coercion guardrails (0% hallucinations).
-- Pharmaceutical Streamlit UI design specifications and 100% benchmark evaluation metrics.
+- **Frontend Propio Desacoplado (`frontend/`):** SPA en **React 19 + TypeScript + Tailwind CSS v4 + Vite** comunicada por **Server-Sent Events (SSE)** con **FastAPI (`api/main.py`)**. *(Streamlit/Gradio eliminados del flujo productivo).*
+- **Streaming de Pasos ReAct en Vivo:** Visualización transparente en tiempo real de `Memory Sync` $\to$ `Gatekeeper Jev` $\to$ `Thought` $\to$ `Action (@tool)` $\to$ `Observation`.
+- **Memoria Conversacional Dual:**
+  - **Corto Plazo:** `SqliteSaver` (`data/memory/checkpoints.sqlite`) indexado por `thread_id` — sobrevive al reinicio del backend y recargas `F5` del navegador, con **Time-Travel** (inspección de checkpoints y bifurcación `fork`).
+  - **Control de Ventana:** `trim_messages` (`trim_conversation_context`) + configuración `SummarizationMiddleware`.
+  - **Largo Plazo:** `PersistentMemoryStore` (`BaseStore`) con `namespace = ("users", user_id, "profile")` y método `search()` para recordar identidad y preferencias entre hilos completamente nuevos.
+- **RAG Documental Híbrido en Qdrant (`src/agent/rag_qdrant.py`):** Índice ANN `HNSW (m=16, ef_construct=100)` con fusión **RRF** (vectores densos + léxicos dispersos BM25) y **citas verificables** exactas (`título`, `sección`, `fragmento`, `URL`).
+- **Blindaje del RAG (`src/agent/rag_shield.py`):** Delimitación estricta como datos pasivos (`<contexto_documental_pasivo>`) + detección e inmunidad contra **Prompt Injection Indirecto**.
+- **Herramienta Determinista CSV/JSON (`src/agent/tools_structured.py`):** `@tool` validada con **Pydantic v2** sobre `data/gold/tq_ventas_trimestrales.csv` (aritmética exacta en Python, cero cifras inventadas, errores pedagógicos de autocorrección).
+- **Gatekeeper System One (Jev) (`src/agent/router.py`):** Clasifica `Choice`, `Noul`, `Score` y `Box` para evitar búsquedas en saludos (`DIRECT_GREETING`), gestionar memoria (`MEMORY_ONLY`), combinar fuentes (`MIXED_HYBRID`) o exigir aprobación humana (`HITL_ACTION`).
+- **HITL en Vivo (`interrupt` + `Command(resume=...)`):** Pausa determinista en el grafo con banner interactivo **[Aprobar ejecución] [Editar parámetros] [Rechazar]** en la UI.
 
 ---
 
-## 🇬🇧 English Version (Default)
+## 🗺️ Arquitectura del Sistema
 
-An enterprise-grade, resilient web crawling, semantic extraction, and grounded Q&A intelligence platform built for **Tecnoquímicas S.A. (TQ Group)**. Designed under pharmaceutical rigor to ensure zero hallucinations and absolute document traceability.
+```mermaid
+flowchart TD
+    subgraph UI["Frontend Propio (React 19 + Vite · :5173)"]
+        Chat["Chat SSE + Hilos Durables (F5)"]
+        Steps["Timeline Thought / Act / Observe"]
+        HITL["HITL Banner (Aprobar / Editar / Rechazar)"]
+        Inspector["Inspector: Store · Time-Travel · Qdrant Shield · Recall@10"]
+    end
 
-### 🏛 System Architecture
-* **Dynamic Headless Ingestion:** Asynchronous crawler orchestrated with **Playwright**, handling full client-side JavaScript hydration, dynamic rendering, and SPA navigation.
-* **Agnostic & Self-Healing Extraction:** Text-density heuristic extraction using **Trafilatura** to isolate high-value clinical and corporate content without relying on brittle CSS selectors.
-* **Declarative Orchestration:** Strict type-safe pipelines built with **LangChain LCEL (LangChain Expression Language)** delivering:
-  1. *Executive Corporate Synthesis.*
-  2. *Automated Pharmaceutical FAQ Mining.*
-  3. *Zero-Shot Grounded Q&A Assistant with Strict Negative Coercion (anti-hallucination).*
-* **Local Sovereign Inference:** Powered by open-source `llama3.2` executed on **Ollama** for full data privacy and low-latency token streaming.
-* **Pharmaceutical-Grade UI (Dark Mode):** Interactive studio built with **Streamlit** following Anthropic's `frontend-design` principles:
-  - 50/50 dual-column viewport layout aligned with the input box.
-  - Gemini-style fixed height message container (`height=425`) with internal scrollbar.
-  - Auto-rotating dynamic image carousel (every 3.8s) featuring flagship TQ products and certified manufacturing facilities.
-  - Multi-session chat thread manager with state persistence across tabs.
-* **Benchmark & Evaluation Harness:** Automated testing framework auditing 20 test cases (*In-Scope*, *Complex Cross-Domain*, and *Adversarial Out-of-Scope*) achieving a validated 100% score.
+    subgraph API["Backend FastAPI (:8000)"]
+        SSE["/api/v1/chat/stream & /chat/hitl"]
+        REST["/threads · /fork · /memory/store · /rag/inject-test · /eval/metrics"]
+    end
 
----
+    subgraph Agent["LangGraph StateGraph Runtime"]
+        Mem["SqliteSaver + Store + trim_messages"]
+        Jev["Gatekeeper System One (Jev)"]
+        RAG["Qdrant Híbrido RRF + Blindaje RAG"]
+        CSV["@tool Pydantic CSV Ventas TQ"]
+    end
 
-### ⚡ Quickstart (One-Liner / Copy & Paste)
-
-Copy and run the following in your terminal to clone, automatically provision dependencies, download the model, and launch the studio:
-
-#### Windows (PowerShell / Command Prompt):
-```powershell
-git clone https://github.com/LUISBENJUMEARIVERA/scrapping.git && cd scrapping && .\run.bat
+    UI <-->|HTTP / SSE| API
+    API --> Agent
+    Agent --> Mem
+    Agent --> Jev
+    Jev --> RAG
+    Jev --> CSV
 ```
 
-#### macOS / Linux:
+Más diagramas detallados (Checkpointer vs. Store, flujo SSE + HITL y comparativa de orquestadores) en [`docs/architecture_m2.md`](docs/architecture_m2.md) y el mapa interactivo del M1 en [`docs/arquitectura.html`](docs/arquitectura.html).
+
+---
+
+## 📊 Evaluación Cuantitativa del Retrieval (`25 consultas etiquetadas`)
+
+| Estrategia en Qdrant (`tq_knowledge_m2`) | Recall@5 | Recall@10 | MRR | nDCG@10 |
+| :--- | :---: | :---: | :---: | :---: |
+| Dense Only (`Cosine`) | 0.96 | 0.96 | 0.8133 | 0.7929 |
+| Lexical Only (`Sparse BM25`) | 0.92 | 0.96 | 0.8744 | 0.8481 |
+| **Hybrid RRF (Densa + Léxica)** | **0.96** | **1.00** | **0.8800** | **0.8475** |
+
+- **Precisión del Gatekeeper Router (Jev):** **100%** (11/11 escenarios).
+- **Trazabilidad LangSmith:** Configurada en [`.env.example`](.env.example) (`LANGSMITH_TRACING=true`, `LANGSMITH_PROJECT=tecnoquimicas-modulo2-agent`).
+
+---
+
+## ⚡ Arranque Rápido (Prueba de 3 Minutos)
+
+### 1. Instalar dependencias y verificar pruebas
 ```bash
-git clone https://github.com/LUISBENJUMEARIVERA/scrapping.git && cd scrapping && chmod +x run.sh && ./run.sh
+uv sync --all-groups
+uv run pytest
 ```
 
----
-
-### 🛠️ Developer Interface (`Makefile`)
-
-The repository includes a comprehensive `Makefile` implementing the **Jan Project Standard**:
-
+### 2. Terminal 1 — Backend del Agente (FastAPI)
 ```bash
-make help               # Display list of all available commands
-make install            # Install and sync dependencies with uv
-make dev                # Set up local dev environment (uv sync + pre-commit install)
-make lint               # Run Ruff linter
-make format             # Autoformat code with Ruff
-make test               # Run the complete test suite with Pytest
-make scrape             # Run Medallion scraping pipeline (Bronze -> Silver -> Gold)
-make app                # Launch pharmaceutical Streamlit interface
-make check              # Complete gate verification (lint + format-check + pytest)
-make pre-commit         # Run all pre-commit hooks manually on all files
+uv run fastapi dev api/main.py
 ```
+*Documentación interactiva OpenAPI disponible en `http://localhost:8000/docs`.*
 
----
-
-### 📂 Repository Structure
-
-```text
-scrapping/
-├── .github/                      # GitHub governance (CI, Dependabot, PR/Issue templates, labels)
-│   ├── ISSUE_TEMPLATE/           # Declarative Bug, Feature, and Spike issue forms
-│   ├── workflows/                # GitHub Actions CI workflow
-│   ├── dependabot.yml            # Automated dependency updates for uv & Actions
-│   ├── labels.yml                # Declarative labels catalog
-│   └── pull_request_template.md  # Standardized Pull Request template
-├── app/
-│   └── main.py                   # High-end pharmaceutical dark-mode Streamlit UI
-├── data/
-│   ├── evaluation/               # Benchmark test questions and audit results (100% score)
-│   ├── gold/                     # Structured JSONL corpus (URL, title, hash SHA-256) & metrics.json
-│   ├── processed/                # Normalized Silver knowledge corpus
-│   └── raw/                      # Raw Bronze HTML payloads (Playwright snapshots)
-├── docs/
-│   ├── SDD.md                    # Software Design Description (IEEE 1016)
-│   ├── technical_report.md       # Technical implementation report
-│   ├── arquitectura.json         # Archify architecture source model
-│   ├── arquitectura.html         # Interactive standalone architecture diagram
-│   └── arquitectura.visual-check # Visual check screenshots and browser validation
-├── src/
-│   ├── chains/
-│   │   ├── prompts.py            # LangChain LCEL prompts with negative coercion
-│   │   └── tasks.py              # Knowledge streaming service
-│   ├── core/
-│   │   ├── benchmark_runner.py   # Automated 20-case evaluation suite
-│   │   ├── config.py             # Domain policies, depth, and crawler configuration
-│   │   └── llm_factory.py        # Ollama llama3.2 connector
-│   ├── ingestion/
-│   │   ├── crawler.py            # Playwright async crawler
-│   │   └── extractor.py          # Trafilatura agnostic heuristic extractor
-│   └── modulo1_knowledge_core/   # Python package entry point
-├── tests/                        # Full unit test suite with pytest (15 passing tests)
-├── CONSTITUTION.md               # Central project constitution & single source of truth
-├── CONTRIBUTING.md               # Contributor guide & PR process
-├── CODE_OF_CONDUCT.md            # Contributor Covenant 2.1 code of conduct
-├── LICENSE                       # MIT License
-├── Makefile                      # Task automation (check, test, lint, format)
-├── pyproject.toml                # Project metadata, dependencies & tool configs (uv)
-├── uv.lock                       # Deterministic versioned lockfile
-└── .pre-commit-config.yaml       # Pre-commit quality hooks (Ruff, uv-lock, hygiene)
-```
-
----
-
-<br>
-
----
-
-## 🇪🇸 Versión en Español
-
-Sistema empresarial de ingesta web resiliente, modelado semántico y arquitectura de consulta Q&A anclada (*grounded*) sobre **Tecnoquímicas S.A. (Grupo TQ)**, desarrollado bajo estándares de rigor farmacéutico para garantizar cero alucinaciones y estricta trazabilidad documental.
-
-### 🏛 Arquitectura de la Solución
-* **Ingesta Dinámica:** Motor asíncrono con **Playwright** que resuelve la hidratación de JavaScript y Single Page Applications.
-* **Extracción Agnóstica (Self-Healing):** Algoritmos de densidad textual con **Trafilatura** que aíslan el contenido central sin depender de selectores CSS frágiles.
-* **Orquestación Declarativa:** Pipelines tipados con **LangChain LCEL** cubriendo tres tareas esenciales:
-  1. *Resumen Corporativo Ejecutivo.*
-  2. *Preguntas Frecuentes (FAQ) Dinámicas.*
-  3. *Asistente Q&A Grounded con Coerción Negativa Estricta y Cita Obligatoria de Fuentes.*
-* **Inferencia Local:** Modelo open-source `llama3.2` vía **Ollama**, asegurando privacidad y latencias mínimas.
-* **Interfaz de Grado Farmacéutico (Dark Mode):** Dashboard interactivo en **Streamlit** aplicando la skill oficial de Anthropic `frontend-design`:
-  - Panel interactivo del Pipeline Medallion con las 5 etapas: *Descubrir → Extraer → Limpiar → Deduplicar → Enriquecer*.
-  - Indicadores clave de desempeño: URLs objetivo, páginas rastreadas, tokens del corpus y volumen de descartes de ruido.
-  - Auditor de documentos Gold con visualización de hashes SHA-256 y conteo de tokens.
-  - Distribución simétrica 50/50 con alineación milimétrica con la barra de entrada.
-  - Contenedor de chat tipo Gemini (`height=425`) con scroll interno y cita formal de fuentes (`📌 Fuente: URL`).
-  - Carrusel automático de imágenes (cada 3.8s) con marcas insignias y complejos industriales TQ.
-  - Gestor multi-sesión de conversaciones con persistencia entre pestañas.
-* **Evaluación Sistemática:** Arnés de pruebas automatizado con una matriz de 20 casos (*In-Scope*, *Complex Semantic* y *Out-of-Scope Adversarial*) con 100% de efectividad.
-
----
-
-### ⚡ Inicio Rápido (Copiar y Pegar)
-
-#### En Windows (PowerShell / CMD):
-```powershell
-git clone https://github.com/LUISBENJUMEARIVERA/scrapping.git && cd scrapping && .\run.bat
-```
-
-#### En macOS y Linux:
+### 3. Terminal 2 — Frontend Propio (React + Vite)
 ```bash
-git clone https://github.com/LUISBENJUMEARIVERA/scrapping.git && cd scrapping && chmod +x run.sh && ./run.sh
+cd frontend
+npm install && npm run dev
 ```
+*Aplicación disponible en `http://localhost:5173`.*
+
+> 💡 **Atajos `Makefile`:** `make api` · `make frontend` · `make eval-m2` · `make check`
 
 ---
 
-### 🌐 Portales Oficiales Vinculados
-* [Tecnoquímicas Confiable (Corporativo)](https://www.tqconfiable.com)
-* [TQ Farma (Línea Médica Especializada)](https://www.tqfarma.com)
-* [Catálogo de Marcas TQ](https://www.tqconfiable.com/marcas)
-* [BR Solutions Group](https://brgrupodesoluciones.com)
+## 🎬 Guion de Sustentación en Vivo (15 Minutos)
+
+La interfaz incluye una barra de **Demo Rápida (1-Clic)** en la parte superior para ejecutar los casos sin improvisaciones:
+
+1. **`[0:00 – 1:30]` Arquitectura:** Frontend React desacoplado de FastAPI, grafo LangGraph, `SqliteSaver`, `Store`, Qdrant y LangSmith.
+2. **`[1:30 – 4:00]` Caso 2 (Memoria Corto y Largo Plazo):** Clic en `2A. Guardar Memoria` $\to$ reiniciar el proceso `uv run fastapi dev api/main.py` $\to$ recargar navegador (`F5`) para demostrar continuidad del `thread_id` $\to$ clic en `2B. Nuevo Hilo + Store` para recuperar perfil entre hilos.
+3. **`[4:00 – 6:30]` Caso 1 (RAG Documental):** Clic en `1. RAG Documental` $\to$ mostrar recuperación híbrida en Qdrant y cita verificable con URL y fragmento.
+4. **`[6:30 – 8:30]` Casos 3 y 4 (Datos CSV + Router Mixto):** Clic en `3. Datos CSV Exactos` (`6,400,000` uds / `$210,000.0M COP`), `4. Router Mixto` (combina meta documental + CSV) y `4B. Saludo (0 RAG)` (0 búsquedas vectoriales).
+5. **`[8:30 – 10:00]` Caso 5 (Blindaje RAG) + Bonus HITL:** Clic en `5. Blindaje RAG` (activa documento trampa `"IGNORA LAS INSTRUCCIONES ANTERIORES..."` y demuestra inmunidad) + clic en `HITL en vivo` (pausa el grafo y permite **Aprobar / Editar / Rechazar**).
+6. **`[10:00 – 12:00]` Repositorio, Git Graph y Pruebas:** `git log --oneline --graph -25`, historial de ~40 PRs fusionados y `uv run pytest` (41/41 passing).
 
 ---
 
-### 📄 Licencia y Constitución
-
-- Licencia: [MIT](LICENSE) © 2026 Luis Benjumea.
-- Fuente única de verdad del proyecto: [`CONSTITUTION.md`](CONSTITUTION.md).
+## 📜 Licencia
+Distribuido bajo licencia **MIT** ([`LICENSE`](LICENSE)).

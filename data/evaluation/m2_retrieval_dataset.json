@@ -1,0 +1,152 @@
+[
+  {
+    "id": "q01",
+    "query": "¿Dónde está ubicada la casa matriz de Tecnoquímicas?",
+    "expected_sections": ["Canales y Sedes"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q02",
+    "query": "¿Cuál es la línea gratuita nacional de atención al consumidor?",
+    "expected_sections": ["Atención y FAQs", "Canales y Sedes"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q03",
+    "query": "¿Cuál es la extensión telefónica de servicio al consumidor?",
+    "expected_sections": ["Canales y Sedes"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q04",
+    "query": "¿En qué año fue fundada Tecnoquímicas?",
+    "expected_sections": ["División Farma e Historia"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q05",
+    "query": "¿Cuántos colaboradores trabajan en TQ y qué porcentaje está en Colombia?",
+    "expected_sections": ["División Farma e Historia", "Gente y Talento"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q06",
+    "query": "¿Realiza Tecnoquímicas pruebas o estudios toxicológicos en animales?",
+    "expected_sections": ["Atención y FAQs"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q07",
+    "query": "¿Qué requisitos se exigen para ser distribuidor o cliente de TQ?",
+    "expected_sections": ["Atención y FAQs"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q08",
+    "query": "¿Pueden las personas naturales comprar directamente en Tecnoquímicas?",
+    "expected_sections": ["Atención y FAQs"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q09",
+    "query": "¿Cómo se accede a los programas de beneficios al paciente para enfermedades crónicas?",
+    "expected_sections": ["Atención y FAQs"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q10",
+    "query": "¿A qué correo debo enviar mi hoja de vida para prácticas o trabajo de grado?",
+    "expected_sections": ["Atención y FAQs"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q11",
+    "query": "¿Cuál es el teléfono gratuito de cartera y facturación?",
+    "expected_sections": ["Atención y FAQs"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q12",
+    "query": "¿Qué inversión realizó TQ en modernización y expansión de plantas farmacéuticas BPM?",
+    "expected_sections": ["División Farma e Historia", "Política de Calidad y BPM"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q13",
+    "query": "¿Cuántos estudios científicos y de bioequivalencia realizó TQ entre 1998 y 2024?",
+    "expected_sections": ["División Farma e Historia", "Política de Calidad y BPM"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q14",
+    "query": "¿Cuál es la política corporativa de calidad y meta de cumplimiento BPM?",
+    "expected_sections": ["Política de Calidad y BPM", "División Farma e Historia"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q15",
+    "query": "¿En cuántos países tiene operación directa Tecnoquímicas y a cuántos exporta?",
+    "expected_sections": ["División Farma e Historia", "Canales y Sedes", "Gente y Talento"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q16",
+    "query": "¿Qué es el Centro de Estimulación y Desarrollo CED TQ?",
+    "expected_sections": ["Gente y Talento"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q17",
+    "query": "¿Qué convenio educativo tuvo TQ con la Fundación Carvajal y la Universidad ICESI?",
+    "expected_sections": ["Gente y Talento"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q18",
+    "query": "¿Qué plantas operan cerca del municipio de Villa Rica, Cauca, y cuánto se invirtió en educación allí?",
+    "expected_sections": ["Gente y Talento"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q19",
+    "query": "¿Qué obras editoriales médicas publicó o financió Tecnoquímicas?",
+    "expected_sections": ["División Farma e Historia", "Gente y Talento"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q20",
+    "query": "¿Cuántos químicos y químicos farmacéuticos integran el equipo de desarrollo e innovación?",
+    "expected_sections": ["División Farma e Historia", "Política de Calidad y BPM"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q21",
+    "query": "¿Cuál es el correo para solicitar donaciones o visitas a plantas?",
+    "expected_sections": ["Atención y FAQs", "Canales y Sedes"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q22",
+    "query": "¿Qué pasa al ingresar al portal de pagos para clientes comerciales en tqconfiable?",
+    "expected_sections": ["Portal Principal"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q23",
+    "query": "¿Dónde se ubican las plantas productivas de Tecnosur y Tecnofar?",
+    "expected_sections": ["Gente y Talento", "Canales y Sedes"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q24",
+    "query": "¿Cuál es la tasa promedio de permanencia de los colaboradores en TQ?",
+    "expected_sections": ["Gente y Talento"],
+    "expected_route": "RAG_DOCUMENTAL"
+  },
+  {
+    "id": "q25",
+    "query": "¿Por qué tqfarma/nuestras-marcas solicita certificación de profesional de salud?",
+    "expected_sections": ["Marcas y Portafolio"],
+    "expected_route": "RAG_DOCUMENTAL"
+  }
+]

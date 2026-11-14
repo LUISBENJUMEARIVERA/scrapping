@@ -51,7 +51,10 @@ make dev       # entornos + hooks de pre-commit
 make check     # lint + formato + pruebas
 make lint      # Ruff (lint)
 make format    # Ruff (formato)
-make test      # pytest
+make test      # pytest (M1 + M2)
+make api       # FastAPI backend (uv run fastapi dev api/main.py)
+make frontend  # React + Vite SPA (cd frontend && npm run dev)
+make eval-m2   # benchmark Recall@10, nDCG@10 y Router
 ```
 
 > ⚠️ **Regla dura:** toda gestión de dependencias y entornos pasa por `uv`. Está
@@ -80,9 +83,12 @@ En OpenCode la preferencia se aplica automáticamente mediante la regla
 
 ## Estructura y convenciones
 
-- `src/modulo1_knowledge_core/` — código del paquete (src-layout).
+- `src/agent/` — núcleo agéntico LangGraph (ReAct, memoria dual, Qdrant híbrido, blindaje, Gatekeeper Jev).
+- `api/` — backend FastAPI desacoplado con streaming SSE multi-evento y HITL.
+- `frontend/` — SPA React 19 + TypeScript + Vite + Tailwind CSS desacoplada.
+- `src/modulo1_knowledge_core/` — código base del paquete (src-layout).
 - `tests/` — pruebas con `pytest` (patrón AAA).
-- `docs/` — documentación, ADRs y notas de investigación.
+- `docs/` y `specs/` — documentación, diagramas, ADRs y especificación versionada.
 - `CONSTITUTION.md` — fuente única de verdad.
 - Estilo impuesto por **Ruff** (`line-length = 100`, comillas dobles).
 - Idioma: UI, comentarios y commits en español; identificadores en inglés.

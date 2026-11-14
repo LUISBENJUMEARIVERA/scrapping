@@ -36,3 +36,13 @@ Thumbs.db
 *.finalize-summary.json
 *.browser-check.json
 *.delivery.json
+
+# Modulo 2 runtime storage & frontend build artifacts
+data/qdrant_db/
+data/memory/*.sqlite*
+data/memory/*.db*
+data/memory/long_term_store.json
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+*.tsbuildinfo
