@@ -564,7 +564,7 @@ export function Modulo1Workspace({ health }: Modulo1WorkspaceProps) {
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <h3 className="flex items-center gap-2 text-sm font-bold text-white">
                   <Database className="h-4 w-4 text-[#00f5ff]" />
-                  Pipeline Medallion (Bronze HTML $\to$ Silver Texto $\to$ Gold JSONL)
+                  Pipeline Medallion (Bronze HTML → Silver Texto → Gold JSONL)
                 </h3>
                 <span className="rounded-full border border-[#d4ff00]/45 bg-[#d4ff00]/10 px-2.5 py-0.5 font-mono text-[10px] font-bold text-[#d4ff00]">
                   5/5 Etapas Verificadas
@@ -606,7 +606,7 @@ export function Modulo1Workspace({ health }: Modulo1WorkspaceProps) {
             <div className="holo-panel rounded-2xl border border-white/10 bg-[#0f0f15]/90 p-4">
               <h3 className="mb-3 flex items-center gap-2 text-sm font-bold text-white">
                 <ShieldCheck className="h-4 w-4 text-[#d4ff00]" />
-                Auditor de Corpus Gold (`data/gold/corpus.jsonl`) — Hashes SHA-256
+                Auditor de Corpus Gold (data/gold/corpus.jsonl) — Hashes SHA-256
               </h3>
               <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 {(overview?.gold_docs ?? []).map((doc) => (
