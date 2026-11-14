@@ -118,13 +118,16 @@ def evaluate_router_accuracy() -> dict[str, Any]:
     }
 
 
-def run_full_m2_evaluation(save_report: bool = True) -> dict[str, Any]:
+def run_full_m2_evaluation(
+    save_report: bool = True,
+    rag_engine: HybridQdrantRAG | None = None,
+) -> dict[str, Any]:
     """Ejecuta el benchmark completo de Retrieval (Densa vs Léxica vs Híbrida) y Router."""
     dataset_path = ROOT_DIR / config.m2_eval_dataset_path
     with open(dataset_path, encoding="utf-8") as f:
         dataset = json.load(f)
 
-    rag = get_rag_engine()
+    rag = rag_engine or get_rag_engine()
     dense_metrics = evaluate_retrieval_mode(rag, dataset, mode="dense")
     lexical_metrics = evaluate_retrieval_mode(rag, dataset, mode="lexical")
     hybrid_metrics = evaluate_retrieval_mode(rag, dataset, mode="hybrid")
