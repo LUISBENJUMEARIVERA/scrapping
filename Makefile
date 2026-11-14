@@ -3,7 +3,7 @@
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help install dev pre-commit-install pre-commit lint format format-check test scrape api frontend frontend-build eval-m2 check build clean
+.PHONY: help install dev pre-commit-install pre-commit lint format format-check test scrape api frontend launch frontend-build eval-m2 check build clean
 
 help: ## Muestra esta ayuda
 	@python -c "import re; [print(f'  \033[36m{m.group(1):<18}\033[0m {m.group(2)}') for line in open('Makefile', encoding='utf-8') if (m := re.match(r'^([a-zA-Z_-]+):.*?## (.*)$$', line))]"
@@ -33,6 +33,9 @@ test: ## Ejecuta las pruebas unitarias e integración con pytest (M1 + M2)
 
 scrape: ## Ejecuta el pipeline de scraping Medallion (Bronze -> Silver -> Gold)
 	uv run python -m src.ingestion.crawler
+
+launch: ## Arranca el agente 3D completo en puertos libres (Windows)
+	powershell -ExecutionPolicy Bypass -File scripts/run_agent.ps1
 
 api: ## Inicia el backend FastAPI del Agente Conversacional (Módulo 2)
 	uv run fastapi dev api/main.py
