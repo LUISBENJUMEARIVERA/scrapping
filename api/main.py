@@ -246,7 +246,12 @@ def _kill_port_listeners(port_raw: str | None, current_pid: int) -> None:
         return
     creation_flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
     try:
-        out = subprocess.check_output(["netstat", "-ano", "-p", "tcp"], text=True, timeout=3)
+        raw = subprocess.check_output(
+            ["netstat", "-ano", "-p", "tcp"],
+            creationflags=creation_flags,
+            timeout=3,
+        )
+        out = raw.decode("cp850", errors="ignore")
     except Exception:
         return
 
@@ -256,7 +261,7 @@ def _kill_port_listeners(port_raw: str | None, current_pid: int) -> None:
         parts = line.split()
         if (
             len(parts) >= 5
-            and parts[3].upper() == "LISTENING"
+            and parts[3].upper() in {"LISTENING", "ESCUCHANDO"}
             and parts[1].endswith(suffix)
             and parts[4].isdigit()
         ):
@@ -270,29 +275,35 @@ def _kill_port_listeners(port_raw: str | None, current_pid: int) -> None:
 
 def _release_ports_and_shutdown() -> None:
     """Cierra SQLite/Qdrant, detiene Frontend/Launcher y finaliza el backend FastAPI."""
-    with contextlib.suppress(Exception):
-        get_memory_manager().conn.close()
-    with contextlib.suppress(Exception):
-        get_rag_engine().close()
+    try:
+        with contextlib.suppress(Exception):
+            get_memory_manager().conn.close()
+        with contextlib.suppress(Exception):
+            get_rag_engine().close()
 
-    current_pid = os.getpid()
-    frontend_port = os.getenv("TQ_FRONTEND_PORT")
-    if frontend_port:
-        _kill_port_listeners(frontend_port, current_pid)
-    else:
-        for probe_port in range(5173, 5181):
-            _kill_port_listeners(str(probe_port), current_pid)
+        current_pid = os.getpid()
+        with contextlib.suppress(Exception):
+            frontend_port = os.getenv("TQ_FRONTEND_PORT")
+            if frontend_port:
+                _kill_port_listeners(frontend_port, current_pid)
+            else:
+                for probe_port in range(5173, 5181):
+                    _kill_port_listeners(str(probe_port), current_pid)
 
-    launcher_pid = os.getenv("TQ_LAUNCHER_PID")
-    if (
-        os.name == "nt"
-        and launcher_pid
-        and launcher_pid.isdigit()
-        and int(launcher_pid) != current_pid
-    ):
-        _run_taskkill(launcher_pid, getattr(subprocess, "CREATE_NO_WINDOW", 0))
+            backend_port = os.getenv("TQ_BACKEND_PORT")
+            if backend_port:
+                _kill_port_listeners(backend_port, current_pid)
 
-    os._exit(0)
+            launcher_pid = os.getenv("TQ_LAUNCHER_PID")
+            if (
+                os.name == "nt"
+                and launcher_pid
+                and launcher_pid.isdigit()
+                and int(launcher_pid) != current_pid
+            ):
+                _run_taskkill(launcher_pid, getattr(subprocess, "CREATE_NO_WINDOW", 0))
+    finally:
+        os._exit(0)
 
 
 @app.post("/api/v1/system/shutdown")
