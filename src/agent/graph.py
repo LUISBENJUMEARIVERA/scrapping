@@ -10,7 +10,11 @@ from collections.abc import Iterator
 from typing import Annotated, Any, TypedDict
 
 from langchain.agents import create_agent
-from langchain.agents.middleware import HumanInTheLoopMiddleware, SummarizationMiddleware
+from langchain.agents.middleware import (
+    HumanInTheLoopMiddleware,
+    ModelFallbackMiddleware,
+    SummarizationMiddleware,
+)
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
@@ -29,7 +33,7 @@ from src.agent.tools_structured import (
     generar_orden_exportacion_auditoria,
 )
 from src.core.config import config
-from src.core.llm_factory import get_chat_model, is_ollama_available
+from src.core.llm_factory import get_chat_model, is_llm_online, is_ollama_available
 
 ALL_AGENT_TOOLS = [*RAG_TOOLS, *STRUCTURED_TOOLS]
 
@@ -81,14 +85,20 @@ def configure_langsmith_env() -> bool:
 def build_langchain_v1_harness(
     memory_mgr: DualMemoryManager | None = None,
 ) -> Any:
-    """Construye un arnés alternativo compatible con LangChain v1 `create_agent` y middlewares."""
+    """Construye un arnés compatible con LangChain v1 `create_agent` y middlewares de resiliencia."""
     mgr = memory_mgr or get_memory_manager()
     model = get_chat_model(temperature=0.1)
+    fallback_ollama = get_chat_model(
+        model=config.llm_model,
+        provider="ollama",
+        temperature=0.1,
+    )
     return create_agent(
         model=model,
         tools=ALL_AGENT_TOOLS,
         system_prompt=SYSTEM_DIRECTIVE,
         middleware=[
+            ModelFallbackMiddleware(fallback_ollama),
             SummarizationMiddleware(
                 model=model,
                 trigger=("tokens", config.max_context_tokens),
@@ -122,7 +132,7 @@ class TecnoquimicasAgentRuntime:
     def _should_call_llm(self) -> bool:
         if self.use_live_llm is not None:
             return self.use_live_llm
-        return is_ollama_available(timeout_seconds=0.8)
+        return is_llm_online(timeout_seconds=0.8)
 
     def _compile_graph(self) -> Any:
         builder = StateGraph(TQAgentState)
@@ -577,6 +587,15 @@ class TecnoquimicasAgentRuntime:
 
         try:
             model = get_chat_model(temperature=0.1)
+            if config.get_active_provider() == "google_genai" and is_ollama_available(
+                timeout_seconds=0.5
+            ):
+                fallback_ollama = get_chat_model(
+                    model=config.llm_model,
+                    provider="ollama",
+                    temperature=0.1,
+                )
+                model = model.with_fallbacks([fallback_ollama])
             obs_text = json.dumps(state.get("tool_observations", []), ensure_ascii=False)[:3000]
             prompt_msgs = [
                 SystemMessage(content=SYSTEM_DIRECTIVE),
@@ -592,7 +611,14 @@ class TecnoquimicasAgentRuntime:
                 ),
             ]
             ai_resp = model.invoke(prompt_msgs)
-            candidate = str(ai_resp.content).strip()
+            raw_content = ai_resp.content
+            if isinstance(raw_content, list):
+                candidate = " ".join(
+                    part.get("text", "") if isinstance(part, dict) else str(part)
+                    for part in raw_content
+                ).strip()
+            else:
+                candidate = str(raw_content).strip()
             # Guardrail anti-inyección post-generación (protege modelos 3.2B)
             lower_cand = candidate.lower()
             if state.get("shield_triggered") and (

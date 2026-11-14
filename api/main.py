@@ -15,7 +15,7 @@ from src.agent.memory import get_memory_manager
 from src.agent.rag_qdrant import get_rag_engine
 from src.agent.tools_structured import load_sales_rows
 from src.core.config import config
-from src.core.llm_factory import is_ollama_available
+from src.core.llm_factory import is_llm_online
 
 from api.schemas import (
     ChatRequest,
@@ -53,15 +53,16 @@ def _format_sse(event: str, data: object) -> str:
 
 @app.get("/api/v1/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
-    """Verifica conectividad de Qdrant, SqliteSaver, Ollama y LangSmith."""
+    """Verifica conectividad de Qdrant, SqliteSaver, Gemini/Ollama y LangSmith."""
     rag = get_rag_engine()
     mem = get_memory_manager()
     runtime = get_agent_runtime()
+    active_label = f"{config.get_active_model()} ({config.get_active_provider()})"
     return HealthResponse(
         status="ok",
         company=config.empresa,
-        llm_model=config.llm_model,
-        ollama_available=is_ollama_available(),
+        llm_model=active_label,
+        ollama_available=is_llm_online(),
         langsmith_tracing=runtime.langsmith_active,
         qdrant_stats=rag.stats(),
         threads_count=len(mem.list_threads()),

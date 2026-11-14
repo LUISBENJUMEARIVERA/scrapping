@@ -1,5 +1,7 @@
 """Configuración centralizada y tipada para Módulo 1 y Módulo 2 de Tecnoquímicas S.A."""
 
+import os
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -55,10 +57,57 @@ class TecnoquimicasConfig(BaseSettings):
     output_gold_jsonl: str = "data/gold/corpus.jsonl"  # Gold
     output_gold_metrics: str = "data/gold/metrics.json"  # Gold Metrics
 
-    # Motor LLM (LangChain v1 init_chat_model + Ollama local soberano)
+    # Motor LLM (LangChain v1 init_chat_model: Gemini cloud prioritario + Ollama local soberano)
     llm_model: str = Field(default="llama3.2", alias="OLLAMA_MODEL")
+    gemini_model: str = Field(default="gemini-2.5-flash", alias="GEMINI_MODEL")
     llm_provider: str = Field(default="ollama", alias="LLM_PROVIDER")
     ollama_base_url: str = Field(default="http://localhost:11434", alias="OLLAMA_BASE_URL")
+    google_api_key: str | None = Field(default=None, alias="GOOGLE_API_KEY")
+
+    def resolve_google_api_key(self) -> str | None:
+        """Retorna la API Key de Google AI Studio desde entorno o `.env` si no es placeholder."""
+        if "GOOGLE_API_KEY" in os.environ:
+            candidate = os.environ["GOOGLE_API_KEY"].strip()
+        elif "GEMINI_API_KEY" in os.environ:
+            candidate = os.environ["GEMINI_API_KEY"].strip()
+        else:
+            candidate = (self.google_api_key or "").strip()
+
+        if not candidate:
+            return None
+        lowered = candidate.lower()
+        placeholders = (
+            "tu_api",
+            "your_",
+            "pega_",
+            "pegue_",
+            "reemplaza",
+            "placeholder",
+            "changeme",
+            "none",
+            "null",
+        )
+        if any(token in lowered for token in placeholders):
+            return None
+        return candidate
+
+    def has_valid_google_key(self) -> bool:
+        """Indica si existe una clave de Google AI Studio usable para Gemini."""
+        return self.resolve_google_api_key() is not None
+
+    def get_active_provider(self) -> str:
+        """Prioriza Google Gemini si hay clave configurada; si no, usa Ollama local."""
+        if self.has_valid_google_key():
+            return "google_genai"
+        if self.llm_provider in {"auto", "google_genai"}:
+            return "ollama"
+        return self.llm_provider
+
+    def get_active_model(self) -> str:
+        """Retorna el identificador del modelo activo según el proveedor seleccionado."""
+        if self.get_active_provider() == "google_genai":
+            return self.gemini_model
+        return self.llm_model
 
     # Módulo 2: Qdrant Vector Store + Memoria Dual + Datos Estructurados
     qdrant_path: str = Field(default="data/qdrant_db", alias="QDRANT_PATH")
