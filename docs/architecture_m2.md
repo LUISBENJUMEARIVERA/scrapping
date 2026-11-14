@@ -7,7 +7,7 @@ flowchart TD
     Start((START)) --> MemSync["memory_sync<br/>trim_messages + Store.search()"]
     MemSync --> Router["gatekeeper_router<br/>System One (Jev): Choice · Noul · Score · Box"]
 
-    Router -- "DIRECT_GREETING / MEMORY_ONLY / OUT_OF_SCOPE<br/>(0 búsquedas en Qdrant/CSV)" --> Synth["synthesizer<br/>init_chat_model + Guardrail"]
+    Router -- "DIRECT_GREETING / MEMORY_ONLY / OUT_OF_SCOPE<br/>(0 búsquedas en Qdrant/CSV)" --> Synth["synthesizer<br/>gemini-3.8-flash -> Ollama fallback + Guardrail"]
     Router -- "RAG_DOCUMENTAL / STRUCTURED_CSV / MIXED_HYBRID" --> Tools["tool_executor<br/>Qdrant Híbrido + Pydantic CSV"]
     Router -- "HITL_ACTION" --> HITL["hitl_gate<br/>interrupt() -> Aprobar / Editar / Rechazar"]
 
@@ -108,3 +108,9 @@ Se evaluó el motor sobre **25 consultas etiquetadas** ([`data/evaluation/m2_ret
 
 - **Precisión del Router Gatekeeper (Jev):** **100%** (11/11 casos: saludos sin quemar Qdrant, memoria `Store`, CSV exacto, RAG, enrutamiento mixto, HITL y rechazo `Out-of-Scope`).
 - **Tasa de bloqueo de Prompt Injection Indirecto:** **100%** gracias al detector léxico-estructural + encapsulación en `<contexto_documental_pasivo>`.
+
+---
+
+## 7. Arquitectura de Decisiones (ADRs)
+
+Cada decisión de diseño está documentada de forma independiente en [`docs/adr/`](adr/README.md) (`ADR-0001` a `ADR-0007`), cubriendo LangGraph, Qdrant RRF, Memoria Dual, Gatekeeper Jev, Blindaje RAG, Gemini/Ollama Fallback y Frontend 3D SSE + Apagado limpio.
