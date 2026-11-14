@@ -163,3 +163,40 @@ export async function fetchEvaluationMetrics(): Promise<EvalMetricsResponse> {
   if (!res.ok) throw new Error("Error al cargar métricas de evaluación.");
   return res.json();
 }
+
+export async function shutdownSystem(): Promise<{ status: string; message: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/system/shutdown`, {
+      method: "POST",
+    });
+    if (res.ok) {
+      return res.json();
+    }
+    if (res.status === 502 || res.status === 503 || res.status === 504) {
+      return {
+        status: "shutting_down",
+        message: "Sistema apagado y puertos TCP liberados.",
+      };
+    }
+  } catch {
+    return {
+      status: "shutting_down",
+      message: "Sistema apagado y puertos TCP liberados.",
+    };
+  }
+
+  if (API_BASE !== "http://127.0.0.1:8000") {
+    try {
+      const direct = await fetch("http://127.0.0.1:8000/api/v1/system/shutdown", {
+        method: "POST",
+      });
+      if (direct.ok) {
+        return direct.json();
+      }
+    } catch {
+      // Puerto 8000 directo no disponible o cerrado durante el apagado
+    }
+  }
+
+  throw new Error("No se pudo ejecutar el apagado del sistema.");
+}
