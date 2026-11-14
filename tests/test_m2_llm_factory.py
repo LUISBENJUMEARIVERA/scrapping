@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from src.agent.graph import build_langchain_v1_harness, configure_langsmith_env
 from src.agent.memory import DualMemoryManager
-from src.core.config import TecnoquimicasConfig
+from src.core.config import TecnoquimicasConfig, config
 from src.core.llm_factory import get_chat_model
 
 
@@ -42,6 +42,7 @@ def test_get_chat_model_falls_back_to_ollama_when_no_google_key(monkeypatch) -> 
     # Arrange
     monkeypatch.setenv("GOOGLE_API_KEY", "")
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setattr(config, "google_api_key", None)
 
     # Act
     llm = get_chat_model()
@@ -54,6 +55,7 @@ def test_configure_langsmith_env_and_harness_middlewares(monkeypatch, tmp_path) 
     """Valida inyección de variables LangSmith y construcción del arnés LangChain v1."""
     # Arrange
     monkeypatch.setenv("LANGSMITH_API_KEY", "ls-test-dummy-token")
+    monkeypatch.setattr(config, "langsmith_tracing", True)
     mem = DualMemoryManager(
         checkpoint_db_path=str(tmp_path / "harness.sqlite"),
         store_path=str(tmp_path / "harness_store.json"),
