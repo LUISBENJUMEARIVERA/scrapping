@@ -39,6 +39,7 @@ Thumbs.db
 
 # Modulo 2 runtime storage & frontend build artifacts
 data/qdrant_db/
+data/qdrant_db/.lock
 data/memory/*.sqlite*
 data/memory/*.db*
 data/memory/long_term_store.json
