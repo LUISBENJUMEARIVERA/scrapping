@@ -54,29 +54,42 @@ function Get-FreeTcpPort {
     throw "No se encontró ningún puerto TCP libre a partir del puerto $StartPort."
 }
 
-$BackendPort = Get-FreeTcpPort -StartPort $PreferredBackendPort
-$FrontendPort = Get-FreeTcpPort -StartPort $PreferredFrontendPort -ExcludePorts @($BackendPort)
-$ApiUrl = "http://127.0.0.1:$BackendPort"
-$UiUrl = "http://127.0.0.1:$FrontendPort"
-
 function Stop-PreviousAgentInstances {
     $currentPid = $PID
-    $pidsToStop = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
+    $pidsToStop = @()
+    $listeners = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
         Where-Object {
             ($_.LocalPort -ge 8000 -and $_.LocalPort -le 8010) -or
             ($_.LocalPort -ge 5173 -and $_.LocalPort -le 5185)
         } |
         Select-Object -ExpandProperty OwningProcess -Unique
 
-    foreach ($procId in $pidsToStop) {
+    foreach ($procId in $listeners) {
         if ($procId -gt 0 -and $procId -ne $currentPid) {
-            & taskkill.exe /PID $procId /T /F 2>$null | Out-Null
+            $procInfo = Get-CimInstance Win32_Process -Filter "ProcessId = $procId" -ErrorAction SilentlyContinue
+            if ($procInfo -and (
+                $procInfo.CommandLine -like "*modulo1-knowledge-core*" -or
+                $procInfo.ExecutablePath -like "*modulo1-knowledge-core*" -or
+                $procInfo.CommandLine -like "*api?main.py*"
+            )) {
+                $pidsToStop += $procId
+                & taskkill.exe /PID $procId /T /F 2>$null | Out-Null
+            }
         }
     }
-    if ($pidsToStop) {
-        Start-Sleep -Milliseconds 250
+    if ($pidsToStop.Count -gt 0) {
+        Start-Sleep -Milliseconds 300
     }
 }
+
+if (-not $DryRun) {
+    Stop-PreviousAgentInstances
+}
+
+$BackendPort = Get-FreeTcpPort -StartPort $PreferredBackendPort
+$FrontendPort = Get-FreeTcpPort -StartPort $PreferredFrontendPort -ExcludePorts @($BackendPort)
+$ApiUrl = "http://127.0.0.1:$BackendPort"
+$UiUrl = "http://127.0.0.1:$FrontendPort"
 
 if ($DryRun) {
     Write-Output "BACKEND_PORT=$BackendPort"
@@ -84,8 +97,6 @@ if ($DryRun) {
     Write-Output "VITE_API_URL=$ApiUrl"
     exit 0
 }
-
-Stop-PreviousAgentInstances
 
 # Asegurar uv en PATH incluso al lanzar desde acceso directo de Windows
 $LocalBin = Join-Path $env:USERPROFILE ".local\bin"
