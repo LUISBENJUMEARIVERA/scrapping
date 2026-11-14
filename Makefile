@@ -1,15 +1,15 @@
 # =============================================================================
-# Módulo 1: Knowledge Core — automatización de tareas
+# Módulo 1 & 2: Tecnoquímicas AI — automatización de tareas
 # =============================================================================
 
 .DEFAULT_GOAL := help
-.PHONY: help install dev pre-commit-install pre-commit lint format format-check test check scrape app build clean
+.PHONY: help install dev pre-commit-install pre-commit lint format format-check test scrape api frontend frontend-build eval-m2 check build clean
 
 help: ## Muestra esta ayuda
 	@python -c "import re; [print(f'  \033[36m{m.group(1):<18}\033[0m {m.group(2)}') for line in open('Makefile', encoding='utf-8') if (m := re.match(r'^([a-zA-Z_-]+):.*?## (.*)$$', line))]"
 
-install: ## Sincroniza el entorno virtual e instala dependencias
-	uv sync
+install: ## Sincroniza el entorno virtual e instala dependencias con uv
+	uv sync --all-groups
 
 dev: install pre-commit-install ## Prepara el entorno de desarrollo (sync + hooks)
 
@@ -28,14 +28,23 @@ format: ## Formatea el código con Ruff
 format-check: ## Verifica el formato sin modificarlo
 	uv run ruff format --check .
 
-test: ## Ejecuta las pruebas unitarias con pytest
+test: ## Ejecuta las pruebas unitarias e integración con pytest (M1 + M2)
 	uv run pytest
 
 scrape: ## Ejecuta el pipeline de scraping Medallion (Bronze -> Silver -> Gold)
 	uv run python -m src.ingestion.crawler
 
-app: ## Inicia la interfaz web Streamlit de grado farmacéutico
-	uv run streamlit run app/main.py
+api: ## Inicia el backend FastAPI del Agente Conversacional (Módulo 2)
+	uv run fastapi dev api/main.py
+
+frontend: ## Inicia el frontend React + Vite desacoplado (Módulo 2)
+	cd frontend && npm run dev
+
+frontend-build: ## Compila TypeScript + Vite para producción
+	cd frontend && npm run build
+
+eval-m2: ## Ejecuta benchmark cuantitativo Recall@10, nDCG@10 y precisión del Router
+	uv run python -m src.agent.evaluator
 
 check: lint format-check test ## Verificación completa (lint + formato + pruebas)
 
