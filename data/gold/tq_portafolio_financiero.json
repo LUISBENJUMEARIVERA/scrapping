@@ -1,0 +1,39 @@
+{
+  "empresa": "Tecnoquímicas S.A. (Grupo TQ)",
+  "fundacion": 1934,
+  "casa_matriz": "Cali, Colombia",
+  "indicadores_corporativos": {
+    "inversion_total_industrial_usd": 300000000,
+    "modernizacion_plantas_bpm_usd": 180000000,
+    "meta_cumplimiento_calidad_bpm_pct": 99.8,
+    "meta_cumplimiento_ventas_unidades_pct": 100.0,
+    "estudios_clinicos_y_bioequivalencia_1998_2024": 647,
+    "colaboradores_totales": 8200,
+    "quimicos_y_farmaceuticos": 400,
+    "paises_operacion_directa": 9,
+    "paises_exportacion": 20,
+    "inversion_educacion_4_anios_cop_millones": 62000,
+    "convenio_fundacion_carvajal_cop_millones": 2500,
+    "inversion_villa_rica_educacion_cop_millones": 3000
+  },
+  "plantas_estrategicas": [
+    {
+      "nombre": "Tecnosur / Tecnofar",
+      "ubicacion": "Villa Rica, Cauca",
+      "certificacion": "Buenas Prácticas de Manufactura (BPM / OMS)",
+      "lineas": ["Farma (MK)", "Cuidado Bebé e Higiene (Winny)"]
+    },
+    {
+      "nombre": "Complejo Industrial Jamundí",
+      "ubicacion": "Jamundí, Valle del Cauca",
+      "certificacion": "BPM / ISO",
+      "lineas": ["Consumo Masivo (Bonfiest, Noraver, Yodora, Sal de Frutas Lua)"]
+    },
+    {
+      "nombre": "Planta Regional El Salvador",
+      "ubicacion": "El Salvador",
+      "certificacion": "BPM Centroamérica",
+      "lineas": ["Internacional Latam"]
+    }
+  ]
+}
