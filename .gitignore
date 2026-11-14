@@ -45,3 +45,4 @@ data/memory/long_term_store.json
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+*.tsbuildinfo
