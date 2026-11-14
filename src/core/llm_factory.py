@@ -6,19 +6,14 @@ import os
 import httpx
 from langchain.chat_models import init_chat_model
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_ollama import ChatOllama
 from src.core.config import config
 
 logger = logging.getLogger(__name__)
 
 
-def get_llm(temperature: float = 0.1) -> ChatOllama:
-    """Instancia y retorna el modelo de Ollama con baja temperatura para evitar alucinaciones."""
-    return ChatOllama(
-        model=config.llm_model,
-        base_url=config.ollama_base_url,
-        temperature=temperature,
-    )
+def get_llm(temperature: float = 0.1) -> BaseChatModel:
+    """Instancia el modelo LLM unificado (Gemini prioritario con fallback automático a Ollama)."""
+    return get_chat_model(temperature=temperature)
 
 
 def get_chat_model(

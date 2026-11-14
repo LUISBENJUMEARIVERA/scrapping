@@ -3,6 +3,7 @@ import {
   Activity,
   Box,
   ExternalLink,
+  Layers,
   MessageSquarePlus,
   PanelRightClose,
   PanelRightOpen,
@@ -16,6 +17,7 @@ import {
 import { AgentReactor3D } from "./components/AgentReactor3D";
 import { HITLBanner } from "./components/HITLBanner";
 import { InspectorPanel } from "./components/InspectorPanel";
+import { Modulo1Workspace } from "./components/Modulo1Workspace";
 import { ReActTimeline } from "./components/ReActTimeline";
 import {
   deleteThread,
@@ -115,6 +117,7 @@ export function App() {
   const [showInspector, setShowInspector] = useState(true);
   const [showReactor, setShowReactor] = useState(true);
   const [reactorExpanded, setReactorExpanded] = useState(false);
+  const [activeModule, setActiveModule] = useState<"m2" | "m1">("m2");
   const [isShuttingDown, setIsShuttingDown] = useState(false);
   const [isPoweredOff, setIsPoweredOff] = useState(false);
 
@@ -437,7 +440,9 @@ export function App() {
                 TECNOQUÍMICAS <span className="text-[#00f5ff]">AI</span>
               </h1>
               <p className="font-mono text-[10px] text-[#8b9bb4]">
-                BIO-REACTOR 3D · MÓDULO 2
+                {activeModule === "m1"
+                  ? "KNOWLEDGE CORE · MÓDULO 1"
+                  : "BIO-REACTOR 3D · MÓDULO 2"}
               </p>
             </div>
             <span
@@ -450,10 +455,46 @@ export function App() {
             />
           </div>
 
+          <div
+            className="mt-3 grid grid-cols-2 gap-1.5 rounded-xl border border-white/10 bg-[#08080a] p-1"
+            role="tablist"
+            aria-label="Selector de módulo"
+          >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeModule === "m2"}
+              onClick={() => setActiveModule("m2")}
+              className={`rounded-lg px-2 py-1.5 font-mono text-[10px] font-semibold transition-all ${
+                activeModule === "m2"
+                  ? "bg-[#00f5ff]/18 text-[#00f5ff] shadow-[0_0_12px_rgba(0,245,255,0.2)] border border-[#00f5ff]/45"
+                  : "text-[#8b9bb4] hover:text-[#eef4fc] border border-transparent"
+              }`}
+            >
+              Módulo 2 · 3D
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeModule === "m1"}
+              onClick={() => setActiveModule("m1")}
+              className={`rounded-lg px-2 py-1.5 font-mono text-[10px] font-semibold transition-all ${
+                activeModule === "m1"
+                  ? "bg-[#d4ff00]/18 text-[#d4ff00] shadow-[0_0_12px_rgba(212,255,0,0.2)] border border-[#d4ff00]/45"
+                  : "text-[#8b9bb4] hover:text-[#eef4fc] border border-transparent"
+              }`}
+            >
+              Módulo 1 · Core
+            </button>
+          </div>
+
           <button
             type="button"
-            onClick={handleNewThread}
-            className="mt-3.5 flex min-h-[38px] w-full items-center justify-center gap-2 rounded-xl bg-[#00f5ff] px-3 py-2 text-xs font-bold text-[#08080a] shadow-[0_0_18px_rgba(0,245,255,0.28)] transition-all hover:brightness-110"
+            onClick={() => {
+              setActiveModule("m2");
+              handleNewThread();
+            }}
+            className="mt-2.5 flex min-h-[38px] w-full items-center justify-center gap-2 rounded-xl bg-[#00f5ff] px-3 py-2 text-xs font-bold text-[#08080a] shadow-[0_0_18px_rgba(0,245,255,0.28)] transition-all hover:brightness-110"
           >
             <MessageSquarePlus className="h-4 w-4" />
             Crear hilo durable
@@ -545,46 +586,91 @@ export function App() {
       <main className="relative flex min-w-0 flex-1 flex-col">
         <header className="border-b border-white/10 bg-[#0f0f15]/80 px-4 py-2.5 backdrop-blur-xl">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex flex-wrap items-center gap-2 text-xs">
-              <Activity className="h-4 w-4 text-[#00f5ff]" />
-              <span className="font-semibold text-[#eef4fc]">Thread ID:</span>
-              <code className="rounded border border-[#00f5ff]/30 bg-[#08080a] px-2 py-0.5 font-mono text-[11px] text-[#00f5ff]">
-                {threadId}
-              </code>
-              <span className="hidden xl:inline text-[11px] text-[#8b9bb4]">
-                Persistencia durable SQLite ante recarga F5
-              </span>
-            </div>
+            {activeModule === "m1" ? (
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <Layers className="h-4 w-4 text-[#d4ff00]" />
+                <span className="font-semibold text-[#eef4fc]">
+                  Módulo 1 · Knowledge Core
+                </span>
+                <code className="rounded border border-[#d4ff00]/35 bg-[#08080a] px-2 py-0.5 font-mono text-[11px] text-[#d4ff00]">
+                  {health?.llm_model ?? "gemini-3.8-flash"}
+                </code>
+                <span className="hidden xl:inline text-[11px] text-[#8b9bb4]">
+                  LCEL Grounded + Medallion Gold + Archify
+                </span>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <Activity className="h-4 w-4 text-[#00f5ff]" />
+                <span className="font-semibold text-[#eef4fc]">Thread ID:</span>
+                <code className="rounded border border-[#00f5ff]/30 bg-[#08080a] px-2 py-0.5 font-mono text-[11px] text-[#00f5ff]">
+                  {threadId}
+                </code>
+                <span className="hidden xl:inline text-[11px] text-[#8b9bb4]">
+                  Persistencia durable SQLite ante recarga F5
+                </span>
+              </div>
+            )}
 
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowReactor((v) => !v)}
-                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-mono text-[11px] transition-colors ${
-                  showReactor
-                    ? "border-[#00f5ff]/50 bg-[#00f5ff]/12 text-[#00f5ff]"
-                    : "border-white/15 bg-[#161622] text-[#cbd5e1] hover:border-white/30"
-                }`}
-              >
-                <Box className="h-3.5 w-3.5" />
-                {showReactor ? "Ocultar 3D" : "Ver Reactor 3D"}
-              </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center rounded-lg border border-white/12 bg-[#08080a] p-0.5">
+                <button
+                  type="button"
+                  onClick={() => setActiveModule("m2")}
+                  className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 font-mono text-[11px] font-semibold transition-colors ${
+                    activeModule === "m2"
+                      ? "bg-[#00f5ff]/18 text-[#00f5ff]"
+                      : "text-[#8b9bb4] hover:text-[#eef4fc]"
+                  }`}
+                >
+                  Módulo 2 · Agente 3D
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveModule("m1")}
+                  className={`inline-flex items-center gap-1 rounded-md px-2.5 py-1 font-mono text-[11px] font-semibold transition-colors ${
+                    activeModule === "m1"
+                      ? "bg-[#d4ff00]/18 text-[#d4ff00]"
+                      : "text-[#8b9bb4] hover:text-[#eef4fc]"
+                  }`}
+                >
+                  <Layers className="h-3 w-3" />
+                  Módulo 1 · Knowledge Core
+                </button>
+              </div>
 
-              <button
-                type="button"
-                onClick={() => setShowInspector((s) => !s)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-[#161622] px-2.5 py-1.5 text-xs font-medium text-[#eef4fc] transition-colors hover:border-[#00f5ff]/45"
-              >
-                {showInspector ? (
-                  <>
-                    <PanelRightClose className="h-3.5 w-3.5 text-[#00f5ff]" /> Ocultar telemetría
-                  </>
-                ) : (
-                  <>
-                    <PanelRightOpen className="h-3.5 w-3.5 text-[#00f5ff]" /> Ver telemetría
-                  </>
-                )}
-              </button>
+              {activeModule === "m2" && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setShowReactor((v) => !v)}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-mono text-[11px] transition-colors ${
+                      showReactor
+                        ? "border-[#00f5ff]/50 bg-[#00f5ff]/12 text-[#00f5ff]"
+                        : "border-white/15 bg-[#161622] text-[#cbd5e1] hover:border-white/30"
+                    }`}
+                  >
+                    <Box className="h-3.5 w-3.5" />
+                    {showReactor ? "Ocultar 3D" : "Ver Reactor 3D"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowInspector((s) => !s)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-[#161622] px-2.5 py-1.5 text-xs font-medium text-[#eef4fc] transition-colors hover:border-[#00f5ff]/45"
+                  >
+                    {showInspector ? (
+                      <>
+                        <PanelRightClose className="h-3.5 w-3.5 text-[#00f5ff]" /> Ocultar telemetría
+                      </>
+                    ) : (
+                      <>
+                        <PanelRightOpen className="h-3.5 w-3.5 text-[#00f5ff]" /> Ver telemetría
+                      </>
+                    )}
+                  </button>
+                </>
+              )}
 
               <button
                 type="button"
@@ -600,7 +686,8 @@ export function App() {
           </div>
 
           {/* Barra de Casos de Sustentación en 1 Clic */}
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          {activeModule === "m2" && (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
             <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-[#8b9bb4]">
               Casos Demo:
             </span>
@@ -683,10 +770,15 @@ export function App() {
               HITL en vivo
             </button>
           </div>
+          )}
         </header>
 
-        {/* Reactor 3D en Vivo acoplado al flujo SSE */}
-        {showReactor && (
+        {activeModule === "m1" ? (
+          <Modulo1Workspace health={health} />
+        ) : (
+          <>
+            {/* Reactor 3D en Vivo acoplado al flujo SSE */}
+            {showReactor && (
           <AgentReactor3D
             activeTurn={activeTurn}
             isStreaming={isStreaming}
@@ -832,10 +924,12 @@ export function App() {
             </button>
           </div>
         </form>
+          </>
+        )}
       </main>
 
       {/* Panel Derecho: Cabina de Telemetría 3D */}
-      {showInspector && (
+      {activeModule === "m2" && showInspector && (
         <div className="hidden lg:block w-[360px] shrink-0">
           <InspectorPanel
             userId={userId}

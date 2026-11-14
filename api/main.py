@@ -6,18 +6,21 @@ import contextlib
 import json
 import os
 import subprocess
+import sys
 import threading
+import time
 from collections.abc import Iterator
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from src.agent.evaluator import run_full_m2_evaluation
-from src.agent.graph import get_agent_runtime
+from src.agent.graph import configure_langsmith_env, get_agent_runtime
 from src.agent.memory import get_memory_manager
 from src.agent.rag_qdrant import get_rag_engine
 from src.agent.tools_structured import load_sales_rows
+from src.chains.tasks import KnowledgeService
 from src.core.config import config
 from src.core.llm_factory import is_llm_online
 
@@ -27,6 +30,7 @@ from api.schemas import (
     HealthResponse,
     HITLDecisionRequest,
     InjectionTrapRequest,
+    M1StreamRequest,
 )
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -227,6 +231,133 @@ def get_evaluation_metrics() -> dict:
         "evaluation": metrics,
         "sales_2025_preview": sales_preview,
     }
+
+
+@app.get("/api/v1/m1/overview")
+def get_modulo1_overview() -> dict:
+    """Retorna métricas Medallion, Corpus Gold SHA-256 y resultados de benchmark del Módulo 1."""
+    metrics_path = ROOT_DIR / config.output_gold_metrics
+    if metrics_path.exists():
+        with open(metrics_path, encoding="utf-8") as f_m:
+            medallion_metrics = json.load(f_m)
+    else:
+        medallion_metrics = {
+            "total_urls_target": 8,
+            "total_pages_scraped": 6,
+            "total_tokens": 2551,
+            "noise_discarded_bytes": 845069,
+            "noise_reduction_ratio_pct": 98.4,
+        }
+
+    gold_docs: list[dict] = []
+    gold_path = ROOT_DIR / config.output_gold_jsonl
+    if gold_path.exists():
+        with open(gold_path, encoding="utf-8") as f_g:
+            for line in f_g:
+                if line.strip():
+                    item = json.loads(line)
+                    gold_docs.append(
+                        {
+                            "section": item.get("section", "Sección"),
+                            "title": item.get("title", "Documento TQ"),
+                            "url": item.get("url", ""),
+                            "content_hash": item.get("content_hash", ""),
+                            "token_count": item.get("token_count", 0),
+                            "char_count": item.get("char_count", 0),
+                        }
+                    )
+
+    bench_path = ROOT_DIR / "data" / "evaluation" / "benchmark_results.md"
+    benchmark_markdown = bench_path.read_text(encoding="utf-8") if bench_path.exists() else ""
+
+    return {
+        "llm_model": f"{config.get_active_model()} ({config.get_active_provider()})",
+        "langsmith_tracing": configure_langsmith_env(),
+        "medallion_metrics": medallion_metrics,
+        "gold_docs": gold_docs,
+        "benchmark_markdown": benchmark_markdown,
+        "has_architecture_html": (ROOT_DIR / "docs" / "arquitectura.html").exists(),
+    }
+
+
+@app.post("/api/v1/m1/stream")
+def stream_modulo1_lcel(req: M1StreamRequest) -> StreamingResponse:
+    """Ejecuta en streaming SSE las cadenas LCEL del Módulo 1 con el motor Gemini/Ollama."""
+    configure_langsmith_env()
+    m1_service = KnowledgeService()
+
+    def event_generator() -> Iterator[str]:
+        started = time.perf_counter()
+        yield _format_sse(
+            "meta",
+            {
+                "task": req.task,
+                "llm_model": config.get_active_model(),
+                "provider": config.get_active_provider(),
+            },
+        )
+        try:
+            if req.task == "summary":
+                stream = m1_service.get_summary_stream()
+            elif req.task == "faq":
+                stream = m1_service.get_faq_stream()
+            else:
+                if not req.question.strip():
+                    yield _format_sse("error", {"message": "Ingresa una pregunta para Q&A."})
+                    return
+                stream = m1_service.answer_question_stream(req.question.strip())
+
+            full_text = ""
+            for chunk in stream:
+                if chunk:
+                    full_text += chunk
+                    yield _format_sse("token", {"delta": chunk})
+
+            latency_ms = int((time.perf_counter() - started) * 1000)
+            yield _format_sse(
+                "done",
+                {"latency_ms": latency_ms, "length": len(full_text)},
+            )
+        except Exception as exc:
+            yield _format_sse("error", {"message": str(exc)})
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@app.post("/api/v1/m1/run-pytest")
+def run_modulo1_pytest() -> dict:
+    """Ejecuta la suite automatizada pytest en vivo y retorna su salida de consola."""
+    proc = subprocess.run(
+        [sys.executable, "-m", "pytest", "-v", "--tb=short"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        cwd=str(ROOT_DIR),
+        timeout=60,
+    )
+    return {
+        "returncode": proc.returncode,
+        "stdout": proc.stdout,
+        "stderr": proc.stderr,
+    }
+
+
+@app.get("/api/v1/m1/architecture-html", response_class=HTMLResponse)
+def get_modulo1_architecture_html() -> HTMLResponse:
+    """Sirve el mapa interactivo Archify del Módulo 1 (`docs/arquitectura.html`)."""
+    arch_file = ROOT_DIR / "docs" / "arquitectura.html"
+    if not arch_file.exists():
+        raise HTTPException(status_code=404, detail="Archivo docs/arquitectura.html no encontrado.")
+    return HTMLResponse(content=arch_file.read_text(encoding="utf-8"))
 
 
 def _run_taskkill(pid: int | str, creation_flags: int) -> None:

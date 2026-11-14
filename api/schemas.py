@@ -37,6 +37,13 @@ class InjectionTrapRequest(BaseModel):
     enabled: bool
 
 
+class M1StreamRequest(BaseModel):
+    """Solicitud de ejecución streaming LCEL para las cadenas del Módulo 1."""
+
+    task: Literal["qa", "summary", "faq"]
+    question: str = Field(default="", description="Pregunta de usuario cuando task='qa'.")
+
+
 class HealthResponse(BaseModel):
     """Estado de salud del runtime agéntico y sus servicios persistentes."""
 

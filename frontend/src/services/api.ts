@@ -3,6 +3,8 @@ import type {
   EvalMetricsResponse,
   HealthStatus,
   LongTermStoreProfile,
+  Modulo1Overview,
+  Modulo1PytestResult,
   ThreadSummary,
 } from "../types/agent";
 
@@ -199,4 +201,34 @@ export async function shutdownSystem(): Promise<{ status: string; message: strin
   }
 
   throw new Error("No se pudo ejecutar el apagado del sistema.");
+}
+
+export async function fetchM1Overview(): Promise<Modulo1Overview> {
+  const res = await fetch(`${API_BASE}/api/v1/m1/overview`);
+  if (!res.ok) throw new Error("Error al cargar telemetría del Módulo 1.");
+  return res.json();
+}
+
+export async function streamM1Task(
+  payload: { task: "qa" | "summary" | "faq"; question?: string },
+  handlers: SSEHandlers,
+): Promise<void> {
+  const resp = await fetch(`${API_BASE}/api/v1/m1/stream`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  await consumeSSE(resp, handlers);
+}
+
+export async function runM1Pytest(): Promise<Modulo1PytestResult> {
+  const res = await fetch(`${API_BASE}/api/v1/m1/run-pytest`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error("Error al ejecutar suite pytest.");
+  return res.json();
+}
+
+export function getM1ArchitectureUrl(): string {
+  return `${API_BASE}/api/v1/m1/architecture-html`;
 }
