@@ -1,7 +1,18 @@
-from pydantic import BaseModel
+"""Configuración centralizada y tipada para Módulo 1 y Módulo 2 de Tecnoquímicas S.A."""
+
+from pydantic import Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class TecnoquimicasConfig(BaseModel):
+class TecnoquimicasConfig(BaseSettings):
+    """Parámetros corporativos, rutas Medallion, Qdrant, Memoria Dual y LangSmith."""
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
     empresa: str = "Tecnoquímicas S.A. (Grupo TQ)"
     seed_urls: list[str] = ["https://www.tqconfiable.com", "https://www.tqfarma.com"]
     allowed_domains: set[str] = {
@@ -44,7 +55,34 @@ class TecnoquimicasConfig(BaseModel):
     output_gold_jsonl: str = "data/gold/corpus.jsonl"  # Gold
     output_gold_metrics: str = "data/gold/metrics.json"  # Gold Metrics
 
-    llm_model: str = "llama3.2"
+    # Motor LLM (LangChain v1 init_chat_model + Ollama local soberano)
+    llm_model: str = Field(default="llama3.2", alias="OLLAMA_MODEL")
+    llm_provider: str = Field(default="ollama", alias="LLM_PROVIDER")
+    ollama_base_url: str = Field(default="http://localhost:11434", alias="OLLAMA_BASE_URL")
+
+    # Módulo 2: Qdrant Vector Store + Memoria Dual + Datos Estructurados
+    qdrant_path: str = Field(default="data/qdrant_db", alias="QDRANT_PATH")
+    qdrant_collection: str = Field(default="tq_knowledge_m2", alias="QDRANT_COLLECTION")
+    sqlite_checkpoint_path: str = Field(
+        default="data/memory/checkpoints.sqlite",
+        alias="SQLITE_CHECKPOINT_PATH",
+    )
+    long_term_store_path: str = Field(
+        default="data/memory/long_term_store.json",
+        alias="SQLITE_STORE_PATH",
+    )
+    structured_sales_csv: str = "data/gold/tq_ventas_trimestrales.csv"
+    structured_portfolio_json: str = "data/gold/tq_portafolio_financiero.json"
+    m2_eval_dataset_path: str = "data/evaluation/m2_retrieval_dataset.json"
+    m2_eval_metrics_path: str = "data/evaluation/m2_retrieval_metrics.json"
+    max_context_tokens: int = 3500
+
+    # Observabilidad LangSmith
+    langsmith_tracing: bool = Field(default=False, alias="LANGSMITH_TRACING")
+    langsmith_project: str = Field(
+        default="tecnoquimicas-modulo2-agent",
+        alias="LANGSMITH_PROJECT",
+    )
 
 
 config = TecnoquimicasConfig()
