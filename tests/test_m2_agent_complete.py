@@ -349,18 +349,28 @@ def test_fastapi_endpoints_and_sse_streaming(tmp_path) -> None:
         assert eval_resp.status_code == 200
         assert "evaluation" in eval_resp.json()
 
+        # System shutdown endpoint (dry_run)
+        shutdown_resp = client.post("/api/v1/system/shutdown?dry_run=true")
+        assert shutdown_resp.status_code == 200
+        assert shutdown_resp.json()["status"] == "shutting_down"
+        assert shutdown_resp.json()["dry_run"] is True
+
     mem.conn.close()
     rag.close()
 
 
-def test_m2_retrieval_benchmark_recall_and_ndcg() -> None:
+def test_m2_retrieval_benchmark_recall_and_ndcg(tmp_path) -> None:
     """Criterio 4.2: Valida Recall@10 >= 0.85, nDCG@10 >= 0.75 y precisión 100% del Router."""
-    report = run_full_m2_evaluation(save_report=False)
-    hybrid = report["comparison"]["hybrid_rrf"]
-    assert report["dataset_size"] >= 25
-    assert hybrid["recall_at_10"] >= 0.85
-    assert hybrid["ndcg_at_10"] >= 0.75
-    assert report["router_evaluation"]["accuracy"] == 1.0
+    rag = HybridQdrantRAG(persist_path=str(tmp_path / "qdrant_eval"))
+    try:
+        report = run_full_m2_evaluation(save_report=False, rag_engine=rag)
+        hybrid = report["comparison"]["hybrid_rrf"]
+        assert report["dataset_size"] >= 25
+        assert hybrid["recall_at_10"] >= 0.85
+        assert hybrid["ndcg_at_10"] >= 0.75
+        assert report["router_evaluation"]["accuracy"] == 1.0
+    finally:
+        rag.close()
 
 
 def test_gemini_provider_selection_and_fallback(monkeypatch) -> None:
