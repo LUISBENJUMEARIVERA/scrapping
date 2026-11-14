@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
+import os
+import subprocess
+import threading
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -222,4 +226,84 @@ def get_evaluation_metrics() -> dict:
     return {
         "evaluation": metrics,
         "sales_2025_preview": sales_preview,
+    }
+
+
+def _run_taskkill(pid: int | str, creation_flags: int) -> None:
+    """Termina de forma silenciosa un árbol de procesos en Windows."""
+    with contextlib.suppress(Exception):
+        subprocess.run(
+            ["taskkill", "/PID", str(pid), "/T", "/F"],
+            capture_output=True,
+            creationflags=creation_flags,
+            timeout=3,
+        )
+
+
+def _kill_port_listeners(port_raw: str | None, current_pid: int) -> None:
+    """Termina en Windows cualquier proceso TCP en escucha sobre el puerto indicado."""
+    if os.name != "nt" or not port_raw or not port_raw.isdigit():
+        return
+    creation_flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+    try:
+        out = subprocess.check_output(["netstat", "-ano", "-p", "tcp"], text=True, timeout=3)
+    except Exception:
+        return
+
+    pids: set[int] = set()
+    suffix = f":{port_raw}"
+    for line in out.splitlines():
+        parts = line.split()
+        if (
+            len(parts) >= 5
+            and parts[3].upper() == "LISTENING"
+            and parts[1].endswith(suffix)
+            and parts[4].isdigit()
+        ):
+            pid = int(parts[4])
+            if pid not in {0, current_pid}:
+                pids.add(pid)
+
+    for pid in pids:
+        _run_taskkill(pid, creation_flags)
+
+
+def _release_ports_and_shutdown() -> None:
+    """Cierra SQLite/Qdrant, detiene Frontend/Launcher y finaliza el backend FastAPI."""
+    with contextlib.suppress(Exception):
+        get_memory_manager().conn.close()
+    with contextlib.suppress(Exception):
+        get_rag_engine().close()
+
+    current_pid = os.getpid()
+    frontend_port = os.getenv("TQ_FRONTEND_PORT")
+    if frontend_port:
+        _kill_port_listeners(frontend_port, current_pid)
+    else:
+        for probe_port in range(5173, 5181):
+            _kill_port_listeners(str(probe_port), current_pid)
+
+    launcher_pid = os.getenv("TQ_LAUNCHER_PID")
+    if (
+        os.name == "nt"
+        and launcher_pid
+        and launcher_pid.isdigit()
+        and int(launcher_pid) != current_pid
+    ):
+        _run_taskkill(launcher_pid, getattr(subprocess, "CREATE_NO_WINDOW", 0))
+
+    os._exit(0)
+
+
+@app.post("/api/v1/system/shutdown")
+def shutdown_system(dry_run: bool = Query(default=False)) -> dict[str, object]:
+    """Apaga de forma segura FastAPI, Vite, SQLite y Qdrant liberando los puertos TCP."""
+    if not dry_run:
+        timer = threading.Timer(0.8, _release_ports_and_shutdown)
+        timer.daemon = True
+        timer.start()
+    return {
+        "status": "shutting_down",
+        "dry_run": dry_run,
+        "message": "Cerrando SQLite/Qdrant, deteniendo servidores y liberando puertos TCP.",
     }
