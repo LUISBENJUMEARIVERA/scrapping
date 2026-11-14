@@ -38,7 +38,8 @@ def test_sales_query_rejects_invalid_year_with_pedagogical_message() -> None:
 
     # Assert
     assert "error_validacion" in parsed
-    assert "2024, 2025 o 2026" in parsed["accion_correctiva"]
+    assert "2024, 2025 o 2026" in parsed["error_validacion"]
+    assert "{2024, 2025, 2026}" in parsed["accion_correctiva"]
 
 
 def test_execute_sales_query_computes_exact_q3_2025_totals() -> None:
@@ -73,4 +74,4 @@ def test_audit_export_tool_and_input_validation() -> None:
     assert payload["estado"] == "APROBADA_Y_EJECUTADA"
     assert payload["total_unidades_certificadas"] == 6_400_000
     with pytest.raises(ValidationError):
-        AuditExportInput(anio=2030, trimestre="Q3", formato="JSON_AUDITORIA")
+        AuditExportInput(anio=2025, trimestre="TODOS", formato="JSON_AUDITORIA")

@@ -15,8 +15,8 @@ def test_extract_user_facts_ignores_questions_and_captures_identity() -> None:
     """Extrae nombre, empresa, cargo y preferencia; ignora preguntas interrogativas."""
     # Arrange
     statement = (
-        "Hola, me llamo Ana Martínez, soy Directora de Compras, "
-        "trabajo en Carvajal y prefiero respuestas ejecutivas."
+        "Hola, me llamo Ana Martínez, soy Directora de Compras y "
+        "trabajo en Carvajal. Prefiero respuestas ejecutivas."
     )
     question = "¿Cómo me llamo y dónde trabajo?"
 
@@ -75,8 +75,25 @@ def test_dual_memory_fork_creates_independent_time_travel_branch(tmp_path) -> No
         checkpoint_db_path=str(tmp_path / "cp.sqlite"),
         store_path=str(tmp_path / "st.json"),
     )
-    mem.save_turn_trace("hilo-base", {"turn": 1, "query": "Q1 ventas"})
-    mem.save_turn_trace("hilo-base", {"turn": 2, "query": "Q2 ventas"})
+    mem.touch_thread("hilo-base", user_id="tester", title="Hilo Base")
+    mem.record_turn_trace(
+        thread_id="hilo-base",
+        checkpoint_id="cp-1",
+        user_query="Q1 ventas",
+        assistant_response="Respuesta Q1",
+        router_decision={"choice": "STRUCTURED_CSV"},
+        steps=[],
+        citations=[],
+    )
+    mem.record_turn_trace(
+        thread_id="hilo-base",
+        checkpoint_id="cp-2",
+        user_query="Q2 ventas",
+        assistant_response="Respuesta Q2",
+        router_decision={"choice": "STRUCTURED_CSV"},
+        steps=[],
+        citations=[],
+    )
 
     # Act
     fork_id = mem.fork_thread_traces("hilo-base", new_thread_id="hilo-rama-2")
