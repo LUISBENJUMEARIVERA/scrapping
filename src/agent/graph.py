@@ -74,10 +74,13 @@ class TQAgentState(TypedDict):
 
 
 def configure_langsmith_env() -> bool:
-    """Activa variables de entorno para LangSmith si hay clave configurada."""
-    if config.langsmith_tracing and os.getenv("LANGSMITH_API_KEY"):
-        os.environ.setdefault("LANGSMITH_TRACING", "true")
-        os.environ.setdefault("LANGSMITH_PROJECT", config.langsmith_project)
+    """Activa variables de entorno para LangSmith si hay clave configurada en entorno o `.env`."""
+    api_key = config.resolve_langsmith_api_key()
+    if config.langsmith_tracing and api_key:
+        os.environ["LANGSMITH_TRACING"] = "true"
+        os.environ["LANGSMITH_API_KEY"] = api_key
+        os.environ["LANGSMITH_PROJECT"] = config.langsmith_project
+        os.environ["LANGSMITH_ENDPOINT"] = config.langsmith_endpoint
         return True
     return False
 

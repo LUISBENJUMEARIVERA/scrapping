@@ -59,23 +59,18 @@ class TecnoquimicasConfig(BaseSettings):
 
     # Motor LLM (LangChain v1 init_chat_model: Gemini cloud prioritario + Ollama local soberano)
     llm_model: str = Field(default="llama3.2", alias="OLLAMA_MODEL")
-    gemini_model: str = Field(default="gemini-2.5-flash", alias="GEMINI_MODEL")
+    gemini_model: str = Field(default="gemini-3.8-flash", alias="GEMINI_MODEL")
     llm_provider: str = Field(default="ollama", alias="LLM_PROVIDER")
     ollama_base_url: str = Field(default="http://localhost:11434", alias="OLLAMA_BASE_URL")
     google_api_key: str | None = Field(default=None, alias="GOOGLE_API_KEY")
 
-    def resolve_google_api_key(self) -> str | None:
-        """Retorna la API Key de Google AI Studio desde entorno o `.env` si no es placeholder."""
-        if "GOOGLE_API_KEY" in os.environ:
-            candidate = os.environ["GOOGLE_API_KEY"].strip()
-        elif "GEMINI_API_KEY" in os.environ:
-            candidate = os.environ["GEMINI_API_KEY"].strip()
-        else:
-            candidate = (self.google_api_key or "").strip()
-
-        if not candidate:
+    @staticmethod
+    def _clean_secret(candidate: str | None) -> str | None:
+        """Limpia y descarta valores vacíos o placeholders en credenciales."""
+        cleaned = (candidate or "").strip()
+        if not cleaned:
             return None
-        lowered = candidate.lower()
+        lowered = cleaned.lower()
         placeholders = (
             "tu_api",
             "your_",
@@ -89,7 +84,27 @@ class TecnoquimicasConfig(BaseSettings):
         )
         if any(token in lowered for token in placeholders):
             return None
-        return candidate
+        return cleaned
+
+    def resolve_google_api_key(self) -> str | None:
+        """Retorna la API Key de Google AI Studio desde entorno o `.env` si no es placeholder."""
+        if "GOOGLE_API_KEY" in os.environ:
+            candidate = os.environ["GOOGLE_API_KEY"]
+        elif "GEMINI_API_KEY" in os.environ:
+            candidate = os.environ["GEMINI_API_KEY"]
+        else:
+            candidate = self.google_api_key
+        return self._clean_secret(candidate)
+
+    def resolve_langsmith_api_key(self) -> str | None:
+        """Retorna la API Key de LangSmith desde entorno o `.env` si no es placeholder."""
+        if "LANGSMITH_API_KEY" in os.environ:
+            candidate = os.environ["LANGSMITH_API_KEY"]
+        elif "LANGCHAIN_API_KEY" in os.environ:
+            candidate = os.environ["LANGCHAIN_API_KEY"]
+        else:
+            candidate = self.langsmith_api_key
+        return self._clean_secret(candidate)
 
     def has_valid_google_key(self) -> bool:
         """Indica si existe una clave de Google AI Studio usable para Gemini."""
@@ -128,6 +143,11 @@ class TecnoquimicasConfig(BaseSettings):
 
     # Observabilidad LangSmith
     langsmith_tracing: bool = Field(default=False, alias="LANGSMITH_TRACING")
+    langsmith_endpoint: str = Field(
+        default="https://api.smith.langchain.com",
+        alias="LANGSMITH_ENDPOINT",
+    )
+    langsmith_api_key: str | None = Field(default=None, alias="LANGSMITH_API_KEY")
     langsmith_project: str = Field(
         default="tecnoquimicas-modulo2-agent",
         alias="LANGSMITH_PROJECT",
