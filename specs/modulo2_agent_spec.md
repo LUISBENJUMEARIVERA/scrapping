@@ -1,6 +1,6 @@
 # Especificación Versionada — Agente Conversacional Tecnoquímicas S.A. (Módulo 2)
 
-> **Spec ID:** `TQ-M2-AGENT-SPEC-2.0.0`  
+> **Spec ID:** `TQ-M2-AGENT-SPEC-2.1.0`  
 > **Estado:** Vigente y verificado en código (`src/agent/`, `api/`, `frontend/`).
 
 ---
@@ -54,3 +54,11 @@ Un agente multi-paso no es un prompt más largo ni cabe en un `POST` bloqueante 
 2. **Aislamiento de datos pasivos (Blindaje RAG):** Los fragmentos recuperados de Qdrant se envuelven en `<contexto_documental_pasivo politica="SOLO_DATOS_NO_EJECUTABLES">` y cualquier intento de anulación de instrucciones se marca como `ALERTA_INYECCION_BLOQUEADA`.
 3. **Ahorro de búsquedas (Gatekeeper Jev):** Saludos (`DIRECT_GREETING`), preguntas personales (`MEMORY_ONLY`) y consultas fuera de alcance (`OUT_OF_SCOPE`) jamás disparan búsquedas vectoriales en Qdrant.
 4. **Durabilidad ante fallos:** Recargar la página (`F5`) o reiniciar el proceso de FastAPI recupera el 100% de hilos, mensajes, checkpoints e interrupciones HITL pendientes desde `data/memory/checkpoints.sqlite`.
+
+---
+
+## 5. Ciclo de Vida, Apagado Seguro y Cumplimiento Anuncio 006
+
+- **Arranque dinámico sin colisiones:** `scripts/run_agent.ps1` detiene listeners residuales en `8000..8010` / `5173..5185` (liberando `data/qdrant_db/.lock`) y enlaza `VITE_API_URL` al puerto libre detectado.
+- **Apagado controlado (`POST /api/v1/system/shutdown`):** Cierra `SqliteSaver` (`checkpoints.sqlite`), libera `HybridQdrantRAG`, finaliza el servidor frontend y libera ambos puertos TCP.
+- **Cobertura de rúbrica (`Anuncio 006`):** 13/13 ítems obligatorios y 7/7 extras deseables implementados y cubiertos por pruebas automatizadas.
