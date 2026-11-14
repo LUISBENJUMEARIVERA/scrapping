@@ -1,0 +1,316 @@
+{
+  "dataset_size": 25,
+  "collection": "tq_knowledge_m2",
+  "comparison": {
+    "dense": {
+      "mode": "dense",
+      "total_queries": 25,
+      "recall_at_5": 0.96,
+      "recall_at_10": 0.96,
+      "mrr": 0.8133,
+      "ndcg_at_10": 0.7929
+    },
+    "lexical": {
+      "mode": "lexical",
+      "total_queries": 25,
+      "recall_at_5": 0.92,
+      "recall_at_10": 0.96,
+      "mrr": 0.8744,
+      "ndcg_at_10": 0.8481
+    },
+    "hybrid_rrf": {
+      "mode": "hybrid",
+      "total_queries": 25,
+      "recall_at_5": 0.96,
+      "recall_at_10": 1.0,
+      "mrr": 0.88,
+      "ndcg_at_10": 0.8475
+    }
+  },
+  "router_evaluation": {
+    "total_cases": 11,
+    "passed": 11,
+    "accuracy": 1.0,
+    "cases": [
+      {
+        "query": "¡Hola! Buenos días",
+        "expected": "DIRECT_GREETING",
+        "predicted": "DIRECT_GREETING",
+        "score": 0.99,
+        "passed": true
+      },
+      {
+        "query": "Muchas gracias",
+        "expected": "DIRECT_GREETING",
+        "predicted": "DIRECT_GREETING",
+        "score": 0.99,
+        "passed": true
+      },
+      {
+        "query": "Me llamo Ana y trabajo en Carvajal",
+        "expected": "MEMORY_ONLY",
+        "predicted": "MEMORY_ONLY",
+        "score": 0.95,
+        "passed": true
+      },
+      {
+        "query": "¿Dónde trabajo?",
+        "expected": "MEMORY_ONLY",
+        "predicted": "MEMORY_ONLY",
+        "score": 0.95,
+        "passed": true
+      },
+      {
+        "query": "¿Cuántas unidades se vendieron en el tercer trimestre de 2025?",
+        "expected": "STRUCTURED_CSV",
+        "predicted": "STRUCTURED_CSV",
+        "score": 0.95,
+        "passed": true
+      },
+      {
+        "query": "¿Cuáles fueron los ingresos de Q1 2026?",
+        "expected": "STRUCTURED_CSV",
+        "predicted": "STRUCTURED_CSV",
+        "score": 0.95,
+        "passed": true
+      },
+      {
+        "query": "¿Qué dice el corpus sobre la política de calidad y BPM?",
+        "expected": "RAG_DOCUMENTAL",
+        "predicted": "RAG_DOCUMENTAL",
+        "score": 0.91,
+        "passed": true
+      },
+      {
+        "query": "¿Cuál es la línea telefónica gratuita nacional?",
+        "expected": "RAG_DOCUMENTAL",
+        "predicted": "RAG_DOCUMENTAL",
+        "score": 0.91,
+        "passed": true
+      },
+      {
+        "query": "Compara la meta del documento con las ventas reales del CSV en Q3",
+        "expected": "MIXED_HYBRID",
+        "predicted": "MIXED_HYBRID",
+        "score": 0.94,
+        "passed": true
+      },
+      {
+        "query": "Genera la orden oficial de exportación de auditoría Q3 2025",
+        "expected": "HITL_ACTION",
+        "predicted": "HITL_ACTION",
+        "score": 0.98,
+        "passed": true
+      },
+      {
+        "query": "¿Cuál es el precio exacto de Bonfiest en droguerías externas?",
+        "expected": "OUT_OF_SCOPE",
+        "predicted": "OUT_OF_SCOPE",
+        "score": 0.96,
+        "passed": true
+      }
+    ]
+  },
+  "hybrid_query_details": [
+    {
+      "id": "q01",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_section": "Canales y Sedes"
+    },
+    {
+      "id": "q02",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.9878,
+      "top_section": "Atención y FAQs"
+    },
+    {
+      "id": "q03",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 0.2,
+      "ndcg_at_10": 0.3869,
+      "top_section": "Atención y FAQs"
+    },
+    {
+      "id": "q04",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 0.2,
+      "ndcg_at_10": 0.3869,
+      "top_section": "Gente y Talento"
+    },
+    {
+      "id": "q05",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 0.5,
+      "ndcg_at_10": 0.7257,
+      "top_section": "Portal Principal"
+    },
+    {
+      "id": "q06",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.8285,
+      "top_section": "Atención y FAQs"
+    },
+    {
+      "id": "q07",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.8824,
+      "top_section": "Atención y FAQs"
+    },
+    {
+      "id": "q08",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.9671,
+      "top_section": "Atención y FAQs"
+    },
+    {
+      "id": "q09",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_section": "Atención y FAQs"
+    },
+    {
+      "id": "q10",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.9558,
+      "top_section": "Atención y FAQs"
+    },
+    {
+      "id": "q11",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.9134,
+      "top_section": "Atención y FAQs"
+    },
+    {
+      "id": "q12",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_section": "División Farma e Historia"
+    },
+    {
+      "id": "q13",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.9066,
+      "top_section": "Política de Calidad y BPM"
+    },
+    {
+      "id": "q14",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_section": "Política de Calidad y BPM"
+    },
+    {
+      "id": "q15",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.8744,
+      "top_section": "Gente y Talento"
+    },
+    {
+      "id": "q16",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.7724,
+      "top_section": "Gente y Talento"
+    },
+    {
+      "id": "q17",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.8712,
+      "top_section": "Gente y Talento"
+    },
+    {
+      "id": "q18",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.884,
+      "top_section": "Gente y Talento"
+    },
+    {
+      "id": "q19",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.942,
+      "top_section": "Gente y Talento"
+    },
+    {
+      "id": "q20",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.9285,
+      "top_section": "División Farma e Historia"
+    },
+    {
+      "id": "q21",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.9668,
+      "top_section": "Atención y FAQs"
+    },
+    {
+      "id": "q22",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 1.0,
+      "top_section": "Portal Principal"
+    },
+    {
+      "id": "q23",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.8127,
+      "top_section": "Gente y Talento"
+    },
+    {
+      "id": "q24",
+      "hit_at_5": true,
+      "hit_at_10": true,
+      "rr": 1.0,
+      "ndcg_at_10": 0.9044,
+      "top_section": "Gente y Talento"
+    },
+    {
+      "id": "q25",
+      "hit_at_5": false,
+      "hit_at_10": true,
+      "rr": 0.1,
+      "ndcg_at_10": 0.2891,
+      "top_section": "División Farma e Historia"
+    }
+  ]
+}
