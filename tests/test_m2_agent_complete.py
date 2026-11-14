@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
@@ -18,6 +19,8 @@ from src.agent.rag_qdrant import HybridQdrantRAG
 from src.agent.rag_shield import detect_indirect_injection, wrap_passive_context
 from src.agent.router import route_query_system_one
 from src.agent.tools_structured import consultar_ventas_estructuradas_tq
+from src.core.config import config
+from src.core.llm_factory import get_chat_model, is_gemini_configured
 
 from api.main import app
 
@@ -357,3 +360,59 @@ def test_m2_retrieval_benchmark_recall_and_ndcg() -> None:
     assert hybrid["recall_at_10"] >= 0.85
     assert hybrid["ndcg_at_10"] >= 0.75
     assert report["router_evaluation"]["accuracy"] == 1.0
+
+
+def test_gemini_provider_selection_and_fallback(monkeypatch) -> None:
+    """Valida prioridad de Google Gemini cuando hay API key y fallback automático a Ollama."""
+    # Arrange: entorno limpio y clave válida en GOOGLE_API_KEY
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setattr(config, "google_api_key", None)
+    monkeypatch.setenv("GOOGLE_API_KEY", "AIzaSyTestDummyKey98765")
+
+    # Act / Assert (a): Gemini pasa a ser proveedor y modelo activo
+    assert is_gemini_configured() is True
+    assert config.get_active_provider() == "google_genai"
+    assert config.get_active_model() == "gemini-2.5-flash"
+
+    # Arrange (b): clave vacía o placeholder debe activar Ollama local
+    monkeypatch.setenv("GOOGLE_API_KEY", "")
+    assert is_gemini_configured() is False
+    assert config.get_active_provider() == "ollama"
+    assert config.get_active_model() == "llama3.2"
+
+    monkeypatch.setenv("GOOGLE_API_KEY", "tu_api_key_aqui")
+    assert is_gemini_configured() is False
+    assert config.get_active_provider() == "ollama"
+
+    # Arrange (c): mock de init_chat_model probando selección Gemini + exportación .env + failover
+    captured_calls: list[dict[str, object]] = []
+    gemini_sentinel = object()
+    ollama_sentinel = object()
+
+    def _fake_init_success(**kwargs):
+        captured_calls.append(kwargs)
+        return gemini_sentinel
+
+    monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
+    monkeypatch.setattr(config, "google_api_key", "AIzaSyEnvFileOnlyKey123")
+    monkeypatch.setattr("src.core.llm_factory.init_chat_model", _fake_init_success)
+
+    selected = get_chat_model(temperature=0.2)
+    assert selected is gemini_sentinel
+    assert os.environ.get("GOOGLE_API_KEY") == "AIzaSyEnvFileOnlyKey123"
+    assert captured_calls[-1]["model_provider"] == "google_genai"
+    assert captured_calls[-1]["model"] == "gemini-2.5-flash"
+
+    failover_calls: list[dict[str, object]] = []
+
+    def _fake_init_with_failure(**kwargs):
+        failover_calls.append(kwargs)
+        if kwargs.get("model_provider") == "google_genai":
+            raise RuntimeError("Quota exhausted")
+        return ollama_sentinel
+
+    monkeypatch.setattr("src.core.llm_factory.init_chat_model", _fake_init_with_failure)
+    resilient = get_chat_model(temperature=0.1)
+    assert resilient is ollama_sentinel
+    assert [call["model_provider"] for call in failover_calls] == ["google_genai", "ollama"]
+    assert failover_calls[-1]["model"] == "llama3.2"
