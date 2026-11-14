@@ -17,7 +17,7 @@
 | **Autoría** | Luis Benjumea — luisantoniobenjumeaia@gmail.com |
 | **Licencia** | MIT |
 | **Rama principal** | `main` |
-| **Estado** | Módulo 2 Completo — 41 Tests Passing & Benchmark 100% Recall@10 ✅ |
+| **Estado** | Módulo 2 Completo — 0 Tests Passing & Benchmark 100% Recall@10 ✅ |
 
 ---
 
@@ -49,9 +49,9 @@ Proveer a **Tecnoquímicas S.A.** de un sistema conversacional soberano, auditab
 | **Orquestación Agéntica** | **LangGraph** (`StateGraph`, `interrupt`, `Command`) + LangChain v1 (`init_chat_model`, `create_agent`, middlewares) |
 | **Base Vectorial & ANN** | **Qdrant** (`HNSW m=16, ef_construct=100` + Búsqueda Híbrida Densa/Léxica RRF) |
 | **Memoria Persistente** | `SqliteSaver` (`data/memory/checkpoints.sqlite`) + `PersistentMemoryStore` (`BaseStore`) |
-| **Motor LLM Local** | Ollama (`llama3.2`) vía `init_chat_model` con fallback determinista auditable |
+| **Motor LLM Híbrido** | Google Gemini (`gemini-3.8-flash`) vía `init_chat_model` + Fallback automático a Ollama (`llama3.2`) |
 | **Observabilidad & Eval** | LangSmith (`LANGSMITH_TRACING=true`) + Evaluador `Recall@10`, `nDCG@10`, `MRR` |
-| **Calidad & CI/CD** | Ruff (`line-length = 100`), `pre-commit`, `pytest` (41 tests), GitHub Actions |
+| **Calidad & CI/CD** | Ruff (`line-length = 100`), `pre-commit`, `pytest` (0 tests), GitHub Actions |
 
 ---
 
@@ -90,7 +90,7 @@ scrapping/
 │   ├── SDD.md                      # Software Design Description
 │   └── arquitectura.html           # Mapa interactivo Archify
 ├── specs/modulo2_agent_spec.md     # Especificación versionada del contrato del agente
-├── tests/                          # 41 pruebas automatizadas Pytest (30 M1 + 11 integrales M2)
+├── tests/                          # 41 pruebas automatizadas Pytest (30 M1 + -30 modulares e integrales M2)
 ├── AGENTS.md                       # Contexto operativo para asistentes LLM
 ├── CONSTITUTION.md                 # Fuente única de verdad
 ├── Makefile                        # Automatización (`make api`, `make frontend`, `make check`)
@@ -117,3 +117,4 @@ scrapping/
 | 2026-11-13 | Implementar Blindaje RAG con bloques pasivos `<contexto_documental_pasivo>` | Garantizar inmunidad total frente a ataques de prompt injection indirecto en documentos externos. |
 | 2026-11-13 | Implementar Memoria Dual (`SqliteSaver` + `PersistentMemoryStore`) y Time-Travel | Garantizar supervivencia ante reinicios/F5, memoria entre hilos y bifurcación de checkpoints. |
 | 2026-11-13 | Implementar Gatekeeper System One (Jev) y HITL con `interrupt()` | Evitar búsquedas inútiles en saludos y exigir aprobación humana en vivo antes de emitir reportes oficiales. |
+| 2026-11-14 | Adoptar `gemini-3.8-flash` prioritario con fallback Ollama y UI 3D Bio-Reactor + `/system/shutdown` | Mayor capacidad de síntesis en vivo con resiliencia offline, trazas LangSmith y reinicio limpio sin locks de Qdrant en sustentación. |
