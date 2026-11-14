@@ -13,6 +13,7 @@ from src.agent.graph import (
     OOS_REJECTION_TEXT,
     TecnoquimicasAgentRuntime,
     build_langchain_v1_harness,
+    configure_langsmith_env,
 )
 from src.agent.memory import DualMemoryManager, trim_conversation_context
 from src.agent.rag_qdrant import HybridQdrantRAG
@@ -372,7 +373,7 @@ def test_gemini_provider_selection_and_fallback(monkeypatch) -> None:
     # Act / Assert (a): Gemini pasa a ser proveedor y modelo activo
     assert is_gemini_configured() is True
     assert config.get_active_provider() == "google_genai"
-    assert config.get_active_model() == "gemini-2.5-flash"
+    assert config.get_active_model() == "gemini-3.8-flash"
 
     # Arrange (b): clave vacía o placeholder debe activar Ollama local
     monkeypatch.setenv("GOOGLE_API_KEY", "")
@@ -401,7 +402,7 @@ def test_gemini_provider_selection_and_fallback(monkeypatch) -> None:
     assert selected is gemini_sentinel
     assert os.environ.get("GOOGLE_API_KEY") == "AIzaSyEnvFileOnlyKey123"
     assert captured_calls[-1]["model_provider"] == "google_genai"
-    assert captured_calls[-1]["model"] == "gemini-2.5-flash"
+    assert captured_calls[-1]["model"] == "gemini-3.8-flash"
 
     failover_calls: list[dict[str, object]] = []
 
@@ -416,3 +417,20 @@ def test_gemini_provider_selection_and_fallback(monkeypatch) -> None:
     assert resilient is ollama_sentinel
     assert [call["model_provider"] for call in failover_calls] == ["google_genai", "ollama"]
     assert failover_calls[-1]["model"] == "llama3.2"
+
+    # Act / Assert (d): configure_langsmith_env carga LANGSMITH_API_KEY desde config (.env)
+    monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+    monkeypatch.delenv("LANGCHAIN_API_KEY", raising=False)
+    monkeypatch.delenv("LANGSMITH_TRACING", raising=False)
+    monkeypatch.delenv("LANGSMITH_PROJECT", raising=False)
+    monkeypatch.delenv("LANGSMITH_ENDPOINT", raising=False)
+    monkeypatch.setattr(config, "langsmith_tracing", True)
+    monkeypatch.setattr(config, "langsmith_api_key", "lsv2_pt_your_key_here")
+    assert configure_langsmith_env() is False
+
+    monkeypatch.setattr(config, "langsmith_api_key", "lsv2_pt_valid_test_key_999")
+    assert configure_langsmith_env() is True
+    assert os.environ.get("LANGSMITH_TRACING") == "true"
+    assert os.environ.get("LANGSMITH_API_KEY") == "lsv2_pt_valid_test_key_999"
+    assert os.environ.get("LANGSMITH_PROJECT") == config.langsmith_project
+    assert os.environ.get("LANGSMITH_ENDPOINT") == config.langsmith_endpoint
