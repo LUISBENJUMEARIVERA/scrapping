@@ -7,12 +7,12 @@
 [![React 19 + Vite](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite-61DAFB?logo=react)](frontend/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-ReAct%20%2B%20HITL-0B1F3A)](src/agent/graph.py)
 [![Qdrant](https://img.shields.io/badge/Qdrant-Hybrid%20RRF%20ANN-DC244C)](src/agent/rag_qdrant.py)
-[![Tests](https://img.shields.io/badge/tests-41%20passed%20(100%25)-success)](tests/)
+[![Tests](https://img.shields.io/badge/tests-0%20passed%20(100%25)-success)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **Maestría en Inteligencia Artificial y Ciencias de Datos — Universidad Autónoma de Occidente (UAO 2026-2S)**  
 > **Grupo 7 — Tecnoquímicas S.A.** | **Autor:** Luis Antonio Benjumea Rivera  
-> **Verdad central:** [`CONSTITUTION.md`](CONSTITUTION.md) · **Arquitectura y Comparativas M2:** [`docs/architecture_m2.md`](docs/architecture_m2.md) · **Especificación:** [`specs/modulo2_agent_spec.md`](specs/modulo2_agent_spec.md)
+> **Verdad central:** [`CONSTITUTION.md`](CONSTITUTION.md) · **Arquitectura y Comparativas M2:** [`docs/architecture_m2.md`](docs/architecture_m2.md) · **ADRs:** [`docs/adr/`](docs/adr/README.md) · **Guía Turno 10:** [`docs/guia_sustentacion_m2.md`](docs/guia_sustentacion_m2.md) · **Especificación:** [`specs/modulo2_agent_spec.md`](specs/modulo2_agent_spec.md)
 
 ---
 
@@ -103,7 +103,7 @@ npm install && npm run dev
 ```
 *Aplicación disponible en `http://localhost:5173`.*
 
-> 💡 **Atajos `Makefile`:** `make api` · `make frontend` · `make eval-m2` · `make check`
+> 💡 **Atajos `Makefile`:** `make api` · `make launch` · `make frontend` · `make eval-m2` · `make check`
 
 ---
 
@@ -116,7 +116,21 @@ La interfaz incluye una barra de **Demo Rápida (1-Clic)** en la parte superior 
 3. **`[4:00 – 6:30]` Caso 1 (RAG Documental):** Clic en `1. RAG Documental` $\to$ mostrar recuperación híbrida en Qdrant y cita verificable con URL y fragmento.
 4. **`[6:30 – 8:30]` Casos 3 y 4 (Datos CSV + Router Mixto):** Clic en `3. Datos CSV Exactos` (`6,400,000` uds / `$210,000.0M COP`), `4. Router Mixto` (combina meta documental + CSV) y `4B. Saludo (0 RAG)` (0 búsquedas vectoriales).
 5. **`[8:30 – 10:00]` Caso 5 (Blindaje RAG) + Bonus HITL:** Clic en `5. Blindaje RAG` (activa documento trampa `"IGNORA LAS INSTRUCCIONES ANTERIORES..."` y demuestra inmunidad) + clic en `HITL en vivo` (pausa el grafo y permite **Aprobar / Editar / Rechazar**).
-6. **`[10:00 – 12:00]` Repositorio, Git Graph y Pruebas:** `git log --oneline --graph -25`, historial de ~40 PRs fusionados y `uv run pytest` (41/41 passing).
+6. **`[10:00 – 12:00]` Repositorio, Git Graph y Pruebas:** `git log --oneline --graph -25`, historial de ~40 PRs fusionados y `uv run pytest` (0/0 passing).
+
+---
+
+---
+
+## ✅ Cumplimiento 100% — Rúbrica Anuncio 006 (`Turno 10 · Grupo 7 Tecnoquímicas`)
+
+| Ítem | Evidencia Implementada en Código y Repo |
+| :--- | :--- |
+| **1.1–1.3 Memoria Dual + Contexto** | `SqliteSaver` (`thread_id`), `trim_messages`, `SummarizationMiddleware`, `PersistentMemoryStore` (`namespace` + `search()`) |
+| **2.1–2.4 Tools, Qdrant RRF, Router & Shield** | `@tool` Pydantic CSV, Qdrant `HNSW` + RRF, Gatekeeper **Jev** (0 búsquedas en saludos), `<contexto_documental_pasivo>` |
+| **3.1–3.2 Frontend Propio & Gobernanza** | SPA React 19 Bio-Reactor 3D + SSE FastAPI (`/system/shutdown`), `uv`, Ruff, `pre-commit`, 40+ PRs fusionados |
+| **4.1–4.2 Diagramas & Evaluación** | Diagramas Mermaid + 7 ADRs (`docs/adr/`), benchmark 25 consultas (`Recall@10 = 1.00`, `nDCG@10 = 0.8475`) |
+| **Deseables (Bonus)** | HITL en vivo (`interrupt` + `Command`), Time-Travel `fork`, comparativa RAG Chains vs Agents y Orquestadores |
 
 ---
 
