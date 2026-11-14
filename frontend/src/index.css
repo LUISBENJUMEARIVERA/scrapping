@@ -4,17 +4,186 @@
   :root {
     --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
     --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+    --void-bg: #08080a;
+    --surface-1: #0f0f15;
+    --surface-2: #161622;
+    --surface-3: #1e1e2e;
+    --acid-cyan: #00f5ff;
+    --acid-lime: #d4ff00;
+    --acid-flame: #ff4d00;
+    --electric-yellow: #ffe600;
+    --text-primary: #eef4fc;
+    --text-muted: #8b9bb4;
   }
 
-  body {
+  html,
+  body,
+  #root {
+    height: 100%;
+    background-color: var(--void-bg);
+    color: var(--text-primary);
     font-family: var(--font-sans);
-    background-color: #F7F9FC;
-    color: #0B1F3A;
+    overflow-x: hidden;
   }
 
   code,
   pre,
   .font-mono {
     font-family: var(--font-mono);
+  }
+}
+
+/* Scrollbar táctico oscuro */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(8, 8, 10, 0.7);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 245, 255, 0.24);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 245, 255, 0.45);
+}
+
+/* Fondo espacial con retícula 3D y líneas de escaneo */
+.cyber-grid-bg {
+  position: relative;
+  background-color: var(--void-bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(0, 245, 255, 0.08), transparent 65%),
+    radial-gradient(ellipse 55% 40% at 85% 95%, rgba(212, 255, 0, 0.05), transparent 60%),
+    linear-gradient(rgba(0, 245, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 245, 255, 0.035) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+}
+
+.cyber-scanlines::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 245, 255, 0.018) 4px
+  );
+}
+
+/* Contenedores con perspectiva 3D real */
+.perspective-stage {
+  perspective: 1200px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.holo-panel {
+  background: linear-gradient(155deg, rgba(22, 22, 34, 0.84) 0%, rgba(12, 12, 18, 0.92) 100%);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 245, 255, 0.16);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.holo-card-3d {
+  transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 200ms ease,
+    box-shadow 240ms ease;
+  will-change: transform;
+}
+
+.holo-card-3d:hover {
+  transform: perspective(1000px) rotateX(1deg) translate3d(0, -2px, 10px);
+  border-color: rgba(0, 245, 255, 0.36);
+  box-shadow:
+    0 20px 44px rgba(0, 0, 0, 0.72),
+    0 0 22px rgba(0, 245, 255, 0.12);
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.85;
+  }
+  70% {
+    transform: scale(1.38);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.42);
+    opacity: 0;
+  }
+}
+
+@keyframes data-stream {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes step-enter-3d {
+  0% {
+    opacity: 0;
+    transform: perspective(900px) rotateX(-16deg) translate3d(0, 14px, -24px) scale(0.97);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(900px) rotateX(0deg) translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes hazard-scan {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(220%);
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 1.8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+}
+
+.animate-data-stream {
+  background-size: 200% 100%;
+  animation: data-stream 1.4s linear infinite;
+}
+
+.animate-step-3d {
+  animation: step-enter-3d 340ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-hazard-scan {
+  animation: hazard-scan 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-ring,
+  .animate-data-stream,
+  .animate-step-3d,
+  .animate-hazard-scan {
+    animation: none !important;
+  }
+
+  .holo-card-3d,
+  .holo-card-3d:hover {
+    transform: none !important;
+    transition: none !important;
   }
 }
