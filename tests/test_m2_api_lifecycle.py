@@ -43,8 +43,8 @@ def test_api_health_exposes_model_and_qdrant_stats(tmp_path) -> None:
         rag.close()
 
 
-def test_api_missing_thread_and_fork_returns_404(tmp_path) -> None:
-    """Valida respuesta HTTP 404 al consultar o bifurcar un thread_id inexistente."""
+def test_api_missing_thread_fork_and_delete_behavior(tmp_path) -> None:
+    """Valida estado vacío en GET /threads/{id} y 404 al bifurcar o eliminar hilo inexistente."""
     mem, rag, rt = _isolated_client_deps(tmp_path)
     try:
         with (
@@ -55,8 +55,11 @@ def test_api_missing_thread_and_fork_returns_404(tmp_path) -> None:
             client = TestClient(app)
             get_resp = client.get("/api/v1/threads/hilo-inexistente-999")
             fork_resp = client.post("/api/v1/threads/hilo-inexistente-999/fork", json={})
-            assert get_resp.status_code == 404
+            del_resp = client.delete("/api/v1/threads/hilo-inexistente-999")
+            assert get_resp.status_code == 200
+            assert get_resp.json()["traces"] == []
             assert fork_resp.status_code == 404
+            assert del_resp.status_code == 404
     finally:
         mem.conn.close()
         rag.close()
