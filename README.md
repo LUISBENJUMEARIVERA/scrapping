@@ -7,7 +7,7 @@
 [![React 19 + Vite](https://img.shields.io/badge/Frontend-React%2019%20%2B%20Vite-61DAFB?logo=react)](frontend/)
 [![LangGraph](https://img.shields.io/badge/LangGraph-ReAct%20%2B%20HITL-0B1F3A)](src/agent/graph.py)
 [![Qdrant](https://img.shields.io/badge/Qdrant-Hybrid%20RRF%20ANN-DC244C)](src/agent/rag_qdrant.py)
-[![Tests](https://img.shields.io/badge/tests-0%20passed%20(100%25)-success)](tests/)
+[![Tests](https://img.shields.io/badge/tests-72%20passed%20(100%25)-success)](tests/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 > **Maestría en Inteligencia Artificial y Ciencias de Datos — Universidad Autónoma de Occidente (UAO 2026-2S)**  
@@ -116,7 +116,7 @@ La interfaz incluye una barra de **Demo Rápida (1-Clic)** en la parte superior 
 3. **`[4:00 – 6:30]` Caso 1 (RAG Documental):** Clic en `1. RAG Documental` $\to$ mostrar recuperación híbrida en Qdrant y cita verificable con URL y fragmento.
 4. **`[6:30 – 8:30]` Casos 3 y 4 (Datos CSV + Router Mixto):** Clic en `3. Datos CSV Exactos` (`6,400,000` uds / `$210,000.0M COP`), `4. Router Mixto` (combina meta documental + CSV) y `4B. Saludo (0 RAG)` (0 búsquedas vectoriales).
 5. **`[8:30 – 10:00]` Caso 5 (Blindaje RAG) + Bonus HITL:** Clic en `5. Blindaje RAG` (activa documento trampa `"IGNORA LAS INSTRUCCIONES ANTERIORES..."` y demuestra inmunidad) + clic en `HITL en vivo` (pausa el grafo y permite **Aprobar / Editar / Rechazar**).
-6. **`[10:00 – 12:00]` Repositorio, Git Graph y Pruebas:** `git log --oneline --graph -25`, historial de ~40 PRs fusionados y `uv run pytest` (0/0 passing).
+6. **`[10:00 – 12:00]` Repositorio, Git Graph y Pruebas:** `git log --oneline --graph -25`, historial de ~40 PRs fusionados y `uv run pytest` (72/72 passing).
 
 ---
 

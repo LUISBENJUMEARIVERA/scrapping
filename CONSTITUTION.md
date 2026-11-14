@@ -17,7 +17,7 @@
 | **Autoría** | Luis Benjumea — luisantoniobenjumeaia@gmail.com |
 | **Licencia** | MIT |
 | **Rama principal** | `main` |
-| **Estado** | Módulo 2 Completo — 0 Tests Passing & Benchmark 100% Recall@10 ✅ |
+| **Estado** | Módulo 2 Completo — 72 Tests Passing & Benchmark 100% Recall@10 ✅ |
 
 ---
 
@@ -51,7 +51,7 @@ Proveer a **Tecnoquímicas S.A.** de un sistema conversacional soberano, auditab
 | **Memoria Persistente** | `SqliteSaver` (`data/memory/checkpoints.sqlite`) + `PersistentMemoryStore` (`BaseStore`) |
 | **Motor LLM Híbrido** | Google Gemini (`gemini-3.8-flash`) vía `init_chat_model` + Fallback automático a Ollama (`llama3.2`) |
 | **Observabilidad & Eval** | LangSmith (`LANGSMITH_TRACING=true`) + Evaluador `Recall@10`, `nDCG@10`, `MRR` |
-| **Calidad & CI/CD** | Ruff (`line-length = 100`), `pre-commit`, `pytest` (0 tests), GitHub Actions |
+| **Calidad & CI/CD** | Ruff (`line-length = 100`), `pre-commit`, `pytest` (72 tests), GitHub Actions |
 
 ---
 
@@ -90,7 +90,7 @@ scrapping/
 │   ├── SDD.md                      # Software Design Description
 │   └── arquitectura.html           # Mapa interactivo Archify
 ├── specs/modulo2_agent_spec.md     # Especificación versionada del contrato del agente
-├── tests/                          # 41 pruebas automatizadas Pytest (30 M1 + -30 modulares e integrales M2)
+├── tests/                          # 72 pruebas automatizadas Pytest (30 M1 + 42 modulares e integrales M2)
 ├── AGENTS.md                       # Contexto operativo para asistentes LLM
 ├── CONSTITUTION.md                 # Fuente única de verdad
 ├── Makefile                        # Automatización (`make api`, `make frontend`, `make check`)
