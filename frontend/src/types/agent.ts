@@ -151,3 +151,33 @@ export interface EvalMetricsResponse {
     cumplimiento_pct: number;
   }>;
 }
+
+export interface Modulo1GoldDoc {
+  section: string;
+  title: string;
+  url: string;
+  content_hash: string;
+  token_count: number;
+  char_count: number;
+}
+
+export interface Modulo1Overview {
+  llm_model: string;
+  langsmith_tracing: boolean;
+  medallion_metrics: {
+    total_urls_target: number;
+    total_pages_scraped: number;
+    total_tokens: number;
+    noise_discarded_bytes: number;
+    noise_reduction_ratio_pct: number;
+  };
+  gold_docs: Modulo1GoldDoc[];
+  benchmark_markdown: string;
+  has_architecture_html: boolean;
+}
+
+export interface Modulo1PytestResult {
+  returncode: number;
+  stdout: string;
+  stderr: string;
+}
