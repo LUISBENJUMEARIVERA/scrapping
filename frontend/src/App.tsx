@@ -1,16 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Activity,
+  Box,
   ExternalLink,
   MessageSquarePlus,
   PanelRightClose,
   PanelRightOpen,
+  Power,
   Send,
   ShieldAlert,
   Sparkles,
   Trash2,
   User,
 } from "lucide-react";
+import { AgentReactor3D } from "./components/AgentReactor3D";
 import { HITLBanner } from "./components/HITLBanner";
 import { InspectorPanel } from "./components/InspectorPanel";
 import { ReActTimeline } from "./components/ReActTimeline";
@@ -23,6 +26,7 @@ import {
   fetchThreads,
   forkThread,
   resumeHITLDecision,
+  shutdownSystem,
   streamChatMessage,
   toggleInjectionTrap,
 } from "./services/api";
@@ -49,11 +53,11 @@ function generateThreadId(): string {
 function FormattedAnswer({ text }: { text: string }) {
   const lines = text.split("\n");
   return (
-    <div className="space-y-1.5 text-sm leading-relaxed text-slate-800">
+    <div className="max-w-[78ch] space-y-1.5 text-sm leading-relaxed text-[#dbe6f5]">
       {lines.map((line, idx) => {
         if (line.startsWith("### ")) {
           return (
-            <h4 key={idx} className="pt-1 text-sm font-semibold text-[#0B1F3A]">
+            <h4 key={idx} className="pt-1.5 text-sm font-bold tracking-tight text-[#00f5ff]">
               {line.slice(4)}
             </h4>
           );
@@ -62,7 +66,7 @@ function FormattedAnswer({ text }: { text: string }) {
           return (
             <div
               key={idx}
-              className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-900"
+              className="rounded-xl border border-[#ff4d00]/55 bg-[#ff4d00]/12 px-3 py-2 text-xs text-[#ffb08e]"
             >
               {line.slice(2).replace(/\*\*/g, "")}
             </div>
@@ -73,7 +77,10 @@ function FormattedAnswer({ text }: { text: string }) {
         }
         const formatted = line.replace(/`([^`]+)`/g, "$1").replace(/\*\*([^*]+)\*\*/g, "$1");
         return (
-          <p key={idx} className={line.startsWith("- ") ? "pl-3 text-[13px]" : "text-[14px]"}>
+          <p
+            key={idx}
+            className={line.startsWith("- ") ? "pl-3 text-[13px] text-[#eef4fc]" : "text-[14px]"}
+          >
             {formatted}
           </p>
         );
@@ -106,6 +113,10 @@ export function App() {
   const [isStreaming, setIsStreaming] = useState(false);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
   const [showInspector, setShowInspector] = useState(true);
+  const [showReactor, setShowReactor] = useState(true);
+  const [reactorExpanded, setReactorExpanded] = useState(false);
+  const [isShuttingDown, setIsShuttingDown] = useState(false);
+  const [isPoweredOff, setIsPoweredOff] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -139,7 +150,9 @@ export function App() {
         setTurns(hydratedTurns);
       } catch (err) {
         setErrorBanner(
-          err instanceof Error ? err.message : "Backend FastAPI inaccesible en puerto 8000.",
+          err instanceof Error
+            ? err.message
+            : "Backend FastAPI inaccesible. Verifica el servicio activo.",
         );
       }
     },
@@ -199,7 +212,7 @@ export function App() {
           onEvent: (eventName, raw) => {
             const data = raw as Record<string, unknown>;
             if (eventName === "error") {
-              setErrorBanner(String(data.message ?? "Error en el agente."));
+              setErrorBanner(String(data.message ?? "Error ejecutando el agente."));
               return;
             }
             if (eventName === "interrupt") {
@@ -374,19 +387,64 @@ export function App() {
     await sendQuery("¿Qué dice el documento de auditoría sobre seguridad y medicamentos gratis?");
   };
 
+  const handleShutdownSystem = async () => {
+    if (isShuttingDown) return;
+    setIsShuttingDown(true);
+    setErrorBanner(null);
+    try {
+      await shutdownSystem();
+      setIsPoweredOff(true);
+      window.setTimeout(() => {
+        window.close();
+      }, 650);
+    } catch (err) {
+      setIsShuttingDown(false);
+      setErrorBanner(
+        err instanceof Error ? err.message : "No se pudo ejecutar el apagado del backend.",
+      );
+    }
+  };
+
+  const activeTurn = turns[turns.length - 1];
+  const trapEnabled = Boolean(health?.qdrant_stats?.trap_enabled);
+
+  if (isPoweredOff) {
+    return (
+      <div className="cyber-grid-bg cyber-scanlines flex h-screen w-full items-center justify-center bg-[#08080a] p-6 text-[#eef4fc]">
+        <div className="holo-panel max-w-md rounded-2xl border border-[#d4ff00]/45 p-7 text-center shadow-[0_0_40px_rgba(0,245,255,0.14)]">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-[#d4ff00]/60 bg-[#d4ff00]/12 text-[#d4ff00]">
+            <Power className="h-7 w-7" />
+          </div>
+          <h1 className="text-lg font-bold text-white">Sistema Tecnoquímicas AI Apagado</h1>
+          <p className="mt-2 text-xs leading-relaxed text-[#cbd5e1]">
+            FastAPI, Vite, SQLite y Qdrant se cerraron de forma segura y los puertos TCP quedaron
+            libres. Ya puedes cerrar esta pestaña o volver a iniciar desde tu acceso directo en el
+            Escritorio.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex h-screen w-full overflow-hidden bg-[#F7F9FC] text-[#0B1F3A]">
+    <div className="cyber-grid-bg cyber-scanlines flex h-screen w-full overflow-hidden bg-[#08080a] text-[#eef4fc]">
       {/* Rail Izquierdo: Marca + Hilos Durables */}
-      <aside className="hidden md:flex w-[270px] shrink-0 flex-col bg-[#0B1F3A] text-slate-100">
+      <aside className="hidden md:flex w-[278px] shrink-0 flex-col border-r border-white/10 bg-[#0f0f15]/92 backdrop-blur-xl">
         <div className="border-b border-white/10 p-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-sm font-bold tracking-tight text-white">Tecnoquímicas AI</h1>
-              <p className="text-[11px] text-slate-300">Agente LangGraph · Módulo 2</p>
+              <h1 className="text-sm font-bold tracking-tight text-white">
+                TECNOQUÍMICAS <span className="text-[#00f5ff]">AI</span>
+              </h1>
+              <p className="font-mono text-[10px] text-[#8b9bb4]">
+                BIO-REACTOR 3D · MÓDULO 2
+              </p>
             </div>
             <span
-              className={`h-2.5 w-2.5 rounded-full ${
-                health?.status === "ok" ? "bg-emerald-400" : "bg-rose-400"
+              className={`relative h-2.5 w-2.5 rounded-full ${
+                health?.status === "ok"
+                  ? "bg-[#d4ff00] shadow-[0_0_10px_#d4ff00]"
+                  : "bg-[#ff4d00] shadow-[0_0_10px_#ff4d00]"
               }`}
               title={health?.status === "ok" ? "Backend FastAPI conectado" : "Desconectado"}
             />
@@ -395,42 +453,49 @@ export function App() {
           <button
             type="button"
             onClick={handleNewThread}
-            className="mt-3 flex w-full items-center justify-center gap-2 rounded-lg bg-[#0052CC] px-3 py-2 text-xs font-semibold text-white hover:bg-blue-600 transition-colors"
+            className="mt-3.5 flex min-h-[38px] w-full items-center justify-center gap-2 rounded-xl bg-[#00f5ff] px-3 py-2 text-xs font-bold text-[#08080a] shadow-[0_0_18px_rgba(0,245,255,0.28)] transition-all hover:brightness-110"
           >
             <MessageSquarePlus className="h-4 w-4" />
-            Nuevo hilo durable
+            Crear hilo durable
           </button>
 
-          <div className="mt-3 flex items-center gap-2 rounded-lg bg-white/5 px-2.5 py-1.5">
-            <User className="h-3.5 w-3.5 text-slate-300" />
-            <input
-              type="text"
-              value={userId}
-              onChange={(e) => setUserId(e.target.value || "default_user")}
-              aria-label="User ID para Store"
-              className="w-full bg-transparent font-mono text-[11px] text-white outline-none"
-              placeholder="user_id (Store)"
-            />
-          </div>
+          <label className="mt-3 block">
+            <span className="mb-1 block font-mono text-[10px] text-[#8b9bb4]">
+              Identificador de memoria (`Store`)
+            </span>
+            <div className="flex items-center gap-2 rounded-lg border border-white/12 bg-[#08080a] px-2.5 py-1.5 focus-within:border-[#00f5ff]/60">
+              <User className="h-3.5 w-3.5 text-[#00f5ff]" />
+              <input
+                type="text"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value || "default_user")}
+                aria-label="User ID para Store"
+                className="w-full bg-transparent font-mono text-[11px] text-[#eef4fc] outline-none"
+                placeholder="user_id (Store)"
+              />
+            </div>
+          </label>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-2 space-y-1">
-          <div className="px-2 py-1 text-[11px] font-medium text-slate-400">
-            Hilos persistidos (`SqliteSaver`)
+        <div className="flex-1 space-y-1 overflow-y-auto p-2.5">
+          <div className="px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-[#8b9bb4]">
+            Hilos persistidos (SqliteSaver)
           </div>
           {threads.map((th) => {
             const active = th.thread_id === threadId;
             return (
               <div
                 key={th.thread_id}
-                className={`group flex items-center justify-between rounded-lg px-2.5 py-2 text-xs cursor-pointer transition-colors ${
-                  active ? "bg-white/15 text-white" : "text-slate-300 hover:bg-white/10"
-                }`}
                 onClick={() => setThreadId(th.thread_id)}
+                className={`group flex cursor-pointer items-center justify-between rounded-xl border px-2.5 py-2 text-xs transition-all ${
+                  active
+                    ? "border-[#00f5ff]/55 bg-[#00f5ff]/10 text-white shadow-[0_0_16px_rgba(0,245,255,0.1)]"
+                    : "border-transparent text-[#a8bad3] hover:border-white/10 hover:bg-white/5"
+                }`}
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{th.title}</p>
-                  <p className="font-mono text-[10px] text-slate-400">
+                  <p className="font-mono text-[10px] text-[#8b9bb4]">
                     {th.turns} turnos · {th.last_choice || "NUEVO"}
                   </p>
                 </div>
@@ -443,8 +508,9 @@ export function App() {
                       else void syncSidebarData(threadId, userId);
                     });
                   }}
-                  className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-300"
+                  aria-label={`Eliminar hilo ${th.title}`}
                   title="Eliminar hilo"
+                  className="rounded p-1 text-[#8b9bb4] opacity-0 transition-opacity hover:text-[#ff4d00] group-hover:opacity-100 focus:opacity-100"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -453,55 +519,91 @@ export function App() {
           })}
         </div>
 
-        <div className="border-t border-white/10 p-3 text-[11px] text-slate-300 space-y-1 font-mono">
-          <div className="flex justify-between">
-            <span>LLM:</span>
-            <span className="text-white">
-              {health?.llm_model ?? "llama3.2"} ({health?.ollama_available ? "live" : "fallback"})
+        <div className="space-y-1.5 border-t border-white/10 bg-[#08080a]/75 p-3 font-mono text-[10px] text-[#8b9bb4]">
+          <div className="flex items-center justify-between gap-2">
+            <span>MOTOR LLM:</span>
+            <span className="truncate font-semibold text-[#d4ff00]">
+              {health?.llm_model ?? "llama3.2"}
             </span>
           </div>
-          <div className="flex justify-between">
-            <span>LangSmith:</span>
-            <span>{health?.langsmith_tracing ? "activo" : "config (.env)"}</span>
+          <div className="flex items-center justify-between gap-2">
+            <span>RESPALDO:</span>
+            <span className="text-[#00f5ff]">
+              {health?.ollama_available ? "ONLINE" : "DETERMINISTA"}
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-2">
+            <span>LANGSMITH:</span>
+            <span className={health?.langsmith_tracing ? "text-[#d4ff00]" : "text-[#8b9bb4]"}>
+              {health?.langsmith_tracing ? "TRACING ACTIVO" : "STANDBY (.env)"}
+            </span>
           </div>
         </div>
       </aside>
 
-      {/* Área Central: Chat + Casos de Sustentación + Streaming ReAct + HITL */}
-      <main className="flex min-w-0 flex-1 flex-col">
-        <header className="border-b border-slate-200 bg-white px-4 py-2.5">
+      {/* Área Central: HUD + Reactor 3D + Streaming ReAct + HITL */}
+      <main className="relative flex min-w-0 flex-1 flex-col">
+        <header className="border-b border-white/10 bg-[#0f0f15]/80 px-4 py-2.5 backdrop-blur-xl">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-xs">
-              <Activity className="h-4 w-4 text-[#0052CC]" />
-              <span className="font-semibold">Thread ID:</span>
-              <code className="rounded bg-slate-100 px-2 py-0.5 text-[11px] text-slate-700">
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <Activity className="h-4 w-4 text-[#00f5ff]" />
+              <span className="font-semibold text-[#eef4fc]">Thread ID:</span>
+              <code className="rounded border border-[#00f5ff]/30 bg-[#08080a] px-2 py-0.5 font-mono text-[11px] text-[#00f5ff]">
                 {threadId}
               </code>
-              <span className="hidden sm:inline text-slate-400">
-                (Recarga F5 o reinicia FastAPI sin perder historial)
+              <span className="hidden xl:inline text-[11px] text-[#8b9bb4]">
+                Persistencia durable SQLite ante recarga F5
               </span>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowInspector((s) => !s)}
-              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
-            >
-              {showInspector ? (
-                <>
-                  <PanelRightClose className="h-3.5 w-3.5" /> Ocultar inspector
-                </>
-              ) : (
-                <>
-                  <PanelRightOpen className="h-3.5 w-3.5" /> Ver inspector
-                </>
-              )}
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setShowReactor((v) => !v)}
+                className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 font-mono text-[11px] transition-colors ${
+                  showReactor
+                    ? "border-[#00f5ff]/50 bg-[#00f5ff]/12 text-[#00f5ff]"
+                    : "border-white/15 bg-[#161622] text-[#cbd5e1] hover:border-white/30"
+                }`}
+              >
+                <Box className="h-3.5 w-3.5" />
+                {showReactor ? "Ocultar 3D" : "Ver Reactor 3D"}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowInspector((s) => !s)}
+                className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-[#161622] px-2.5 py-1.5 text-xs font-medium text-[#eef4fc] transition-colors hover:border-[#00f5ff]/45"
+              >
+                {showInspector ? (
+                  <>
+                    <PanelRightClose className="h-3.5 w-3.5 text-[#00f5ff]" /> Ocultar telemetría
+                  </>
+                ) : (
+                  <>
+                    <PanelRightOpen className="h-3.5 w-3.5 text-[#00f5ff]" /> Ver telemetría
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => void handleShutdownSystem()}
+                disabled={isShuttingDown}
+                title="Apagar FastAPI, Vite, SQLite/Qdrant y liberar los puertos TCP"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[#ff4d00]/55 bg-[#ff4d00]/15 px-2.5 py-1.5 font-mono text-[11px] font-semibold text-[#ff9366] transition-colors hover:bg-[#ff4d00]/28 disabled:opacity-50"
+              >
+                <Power className="h-3.5 w-3.5" />
+                {isShuttingDown ? "Apagando..." : "Apagar sistema"}
+              </button>
+            </div>
           </div>
 
           {/* Barra de Casos de Sustentación en 1 Clic */}
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
-            <span className="text-[11px] font-medium text-slate-500 mr-1">Demo rápida:</span>
+            <span className="mr-1 font-mono text-[10px] uppercase tracking-wider text-[#8b9bb4]">
+              Casos Demo:
+            </span>
             <button
               type="button"
               onClick={() =>
@@ -509,7 +611,7 @@ export function App() {
                   "¿Qué dice el corpus sobre la política de calidad, certificaciones BPM y estudios científicos de TQ?",
                 )
               }
-              className="rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-[11px] font-medium text-blue-800 hover:bg-blue-100"
+              className="rounded-md border border-[#d4ff00]/35 bg-[#d4ff00]/10 px-2.5 py-1 text-[11px] font-medium text-[#d4ff00] transition-colors hover:bg-[#d4ff00]/20"
             >
               1. RAG Documental
             </button>
@@ -520,7 +622,7 @@ export function App() {
                   "Hola, me llamo Ana Martínez, soy Directora de Compras y trabajo en Carvajal. Prefiero respuestas ejecutivas.",
                 )
               }
-              className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1 text-[11px] font-medium text-indigo-800 hover:bg-indigo-100"
+              className="rounded-md border border-[#00f5ff]/35 bg-[#00f5ff]/10 px-2.5 py-1 text-[11px] font-medium text-[#00f5ff] transition-colors hover:bg-[#00f5ff]/20"
             >
               2A. Guardar Memoria
             </button>
@@ -530,7 +632,7 @@ export function App() {
                 const fresh = generateThreadId();
                 void sendQuery("¿Recuerdas cómo me llamo y dónde trabajo?", fresh);
               }}
-              className="rounded-md border border-indigo-200 bg-indigo-50 px-2 py-1 text-[11px] font-medium text-indigo-800 hover:bg-indigo-100"
+              className="rounded-md border border-[#00f5ff]/35 bg-[#00f5ff]/10 px-2.5 py-1 text-[11px] font-medium text-[#00f5ff] transition-colors hover:bg-[#00f5ff]/20"
             >
               2B. Nuevo Hilo + Store
             </button>
@@ -541,7 +643,7 @@ export function App() {
                   "¿Cuántas unidades se vendieron y cuáles fueron los ingresos en el tercer trimestre de 2025?",
                 )
               }
-              className="rounded-md border border-teal-200 bg-teal-50 px-2 py-1 text-[11px] font-medium text-teal-800 hover:bg-teal-100"
+              className="rounded-md border border-[#00f5ff]/35 bg-[#161622] px-2.5 py-1 text-[11px] font-medium text-[#7ef9ff] transition-colors hover:border-[#00f5ff]"
             >
               3. Datos CSV Exactos
             </button>
@@ -552,21 +654,21 @@ export function App() {
                   "Compara la meta de calidad del documento con las ventas reales del tercer trimestre en el CSV.",
                 )
               }
-              className="rounded-md border border-violet-200 bg-violet-50 px-2 py-1 text-[11px] font-medium text-violet-800 hover:bg-violet-100"
+              className="rounded-md border border-[#ffe600]/40 bg-[#ffe600]/10 px-2.5 py-1 text-[11px] font-medium text-[#ffe600] transition-colors hover:bg-[#ffe600]/20"
             >
               4. Router Mixto
             </button>
             <button
               type="button"
               onClick={() => void sendQuery("¡Hola! Buenos días, ¿cómo estás hoy?")}
-              className="rounded-md border border-slate-200 bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-700 hover:bg-slate-200"
+              className="rounded-md border border-white/15 bg-[#161622] px-2.5 py-1 text-[11px] font-medium text-[#cbd5e1] transition-colors hover:border-white/35"
             >
               4B. Saludo (0 RAG)
             </button>
             <button
               type="button"
               onClick={() => void launchInjectionDemo()}
-              className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-medium text-rose-800 hover:bg-rose-100"
+              className="inline-flex items-center gap-1 rounded-md border border-[#ff4d00]/55 bg-[#ff4d00]/15 px-2.5 py-1 text-[11px] font-medium text-[#ff9366] transition-colors hover:bg-[#ff4d00]/25"
             >
               <ShieldAlert className="h-3 w-3" />
               5. Blindaje RAG
@@ -576,45 +678,63 @@ export function App() {
               onClick={() =>
                 void sendQuery("Genera la orden oficial de exportación de auditoría Q3 2025")
               }
-              className="rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-medium text-amber-900 hover:bg-amber-100"
+              className="rounded-md border border-[#ffe600]/55 bg-[#ffe600]/15 px-2.5 py-1 text-[11px] font-semibold text-[#ffe600] transition-colors hover:bg-[#ffe600]/25"
             >
               HITL en vivo
             </button>
           </div>
         </header>
 
+        {/* Reactor 3D en Vivo acoplado al flujo SSE */}
+        {showReactor && (
+          <AgentReactor3D
+            activeTurn={activeTurn}
+            isStreaming={isStreaming}
+            pendingInterrupt={pendingInterrupt}
+            trapEnabled={trapEnabled}
+            llmModel={health?.llm_model}
+            langsmithActive={health?.langsmith_tracing}
+            qdrantPoints={health?.qdrant_stats?.points_count}
+            expanded={reactorExpanded}
+            onToggleExpand={() => setReactorExpanded((v) => !v)}
+          />
+        )}
+
         {errorBanner && (
-          <div className="mx-4 mt-3 rounded-lg border border-rose-300 bg-rose-50 px-3 py-2 text-xs text-rose-800">
+          <div className="mx-4 mt-3 rounded-xl border border-[#ff4d00]/65 bg-[#ff4d00]/12 px-3.5 py-2.5 text-xs text-[#ffb08e]">
             {errorBanner}
           </div>
         )}
 
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+        <div className="perspective-stage flex-1 space-y-4 overflow-y-auto px-4 py-4">
           {turns.length === 0 && !pendingInterrupt && (
-            <div className="mx-auto max-w-2xl rounded-xl border border-slate-200 bg-white p-6 text-center mt-8">
-              <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-[#0052CC]">
+            <div className="holo-panel holo-card-3d mx-auto mt-3 max-w-2xl rounded-2xl p-6 text-center">
+              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl border border-[#00f5ff]/45 bg-[#00f5ff]/12 text-[#00f5ff] shadow-[0_0_24px_rgba(0,245,255,0.2)]">
                 <Sparkles className="h-5 w-5" />
               </div>
-              <h2 className="text-base font-semibold text-[#0B1F3A]">
-                Núcleo Agéntico Tecnoquímicas S.A.
+              <h2 className="text-base font-bold tracking-tight text-white">
+                Núcleo Bio-Reactor 3D · Tecnoquímicas S.A.
               </h2>
-              <p className="mt-1.5 text-xs text-slate-600 leading-relaxed">
-                Arquitectura desacoplada React + FastAPI + LangGraph con streaming de pasos ReAct,
-                memoria durable en SQLite, Store por namespaces, Qdrant híbrido (Densa + Léxica RRF),
-                Gatekeeper Jev, blindaje anti-inyección y pausa HITL en vivo.
+              <p className="mx-auto mt-2 max-w-[68ch] text-xs leading-relaxed text-[#a8bad3]">
+                Observa en el escenario 3D superior cómo viajan los flujos entre Memoria Dual,
+                Gatekeeper Jev, Qdrant RRF, CSV Determinista, Escudo Anti-Inyección, Control HITL y{" "}
+                <span className="font-mono text-[#d4ff00]">
+                  {health?.llm_model ?? "gemini-3.8-flash"}
+                </span>{" "}
+                en cada consulta o caso de demostración.
               </p>
             </div>
           )}
 
           {turns.map((turn) => (
-            <div key={turn.id} className="mx-auto max-w-4xl space-y-2.5">
+            <div key={turn.id} className="mx-auto max-w-4xl space-y-3">
               <div className="flex justify-end">
-                <div className="max-w-[82%] rounded-2xl rounded-tr-sm bg-[#0B1F3A] px-4 py-2.5 text-sm text-white">
+                <div className="max-w-[82%] rounded-2xl rounded-tr-sm border border-[#00f5ff]/40 bg-[#161622] px-4 py-2.5 text-sm text-[#eef4fc] shadow-[0_8px_24px_rgba(0,0,0,0.45)]">
                   {turn.userQuery}
                 </div>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="holo-panel holo-card-3d rounded-2xl p-4">
                 <ReActTimeline
                   routerDecision={turn.routerDecision}
                   steps={turn.steps}
@@ -627,32 +747,33 @@ export function App() {
                   <FormattedAnswer text={turn.assistantAnswer} />
                 ) : (
                   turn.isStreaming && (
-                    <p className="text-xs font-mono text-slate-500">
-                      Sintetizando respuesta verificada...
-                    </p>
+                    <div className="flex items-center gap-2 py-1 font-mono text-xs text-[#00f5ff]">
+                      <span className="h-2 w-2 rounded-full bg-[#00f5ff] animate-pulse" />
+                      Sintetizando respuesta verificada en núcleo 3D...
+                    </div>
                   )
                 )}
 
                 {turn.citations.length > 0 && (
-                  <div className="mt-3 border-t border-slate-100 pt-2.5">
-                    <p className="text-[11px] font-semibold text-slate-500 mb-1.5">
+                  <div className="mt-3.5 border-t border-white/10 pt-3">
+                    <p className="mb-2 font-mono text-[11px] font-semibold text-[#8b9bb4]">
                       Evidencia Qdrant recuperada ({turn.citations.length} fragmentos):
                     </p>
-                    <div className="flex flex-wrap gap-1.5">
+                    <div className="flex flex-wrap gap-2">
                       {turn.citations.map((c) => (
                         <a
                           key={c.chunk_id}
                           href={c.url}
                           target="_blank"
                           rel="noreferrer"
-                          className={`inline-flex items-center gap-1 rounded border px-2 py-1 text-[11px] transition-colors ${
+                          className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-[11px] transition-all ${
                             c.is_injection_trap
-                              ? "border-rose-300 bg-rose-50 text-rose-800"
-                              : "border-slate-200 bg-slate-50 text-slate-700 hover:border-blue-300 hover:text-[#0052CC]"
+                              ? "border-[#ff4d00]/65 bg-[#ff4d00]/15 text-[#ff9366]"
+                              : "border-white/12 bg-[#08080a] text-[#dbe6f5] hover:border-[#00f5ff]/55 hover:text-[#00f5ff]"
                           }`}
                         >
                           <span className="font-medium">{c.section}</span>
-                          <span className="font-mono text-[10px] text-slate-500">
+                          <span className="font-mono text-[10px] text-[#d4ff00]">
                             ({c.score.toFixed(2)})
                           </span>
                           <ExternalLink className="h-3 w-3" />
@@ -682,9 +803,11 @@ export function App() {
             e.preventDefault();
             void sendQuery(input);
           }}
-          className="border-t border-slate-200 bg-white px-4 py-3"
+          className={`border-t bg-[#0f0f15]/90 px-4 py-3 backdrop-blur-xl transition-colors ${
+            isStreaming ? "border-[#00f5ff]/55" : "border-white/10"
+          }`}
         >
-          <div className="mx-auto flex max-w-4xl items-end gap-2">
+          <div className="mx-auto flex max-w-4xl items-end gap-2.5">
             <textarea
               rows={2}
               value={input}
@@ -695,24 +818,25 @@ export function App() {
                   void sendQuery(input);
                 }
               }}
+              aria-label="Consulta para el agente Tecnoquímicas"
               placeholder="Consulta documentos de TQ, ventas trimestrales CSV, memoria entre hilos o solicita auditoría HITL..."
-              className="flex-1 resize-none rounded-xl border border-slate-300 bg-[#F7F9FC] px-3.5 py-2.5 text-sm text-[#0B1F3A] outline-none focus:border-[#0052CC] focus:bg-white transition-colors"
+              className="flex-1 resize-none rounded-xl border border-white/15 bg-[#08080a] px-3.5 py-2.5 text-sm text-[#eef4fc] placeholder:text-[#667791] outline-none transition-all focus:border-[#00f5ff] focus:shadow-[0_0_16px_rgba(0,245,255,0.16)]"
             />
             <button
               type="submit"
               disabled={isStreaming || !input.trim()}
-              className="inline-flex h-[44px] items-center gap-2 rounded-xl bg-[#0052CC] px-4 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-40 transition-colors"
+              className="inline-flex h-[46px] items-center gap-2 rounded-xl bg-[#00f5ff] px-4 text-xs font-bold text-[#08080a] shadow-[0_0_18px_rgba(0,245,255,0.28)] transition-all hover:brightness-110 disabled:opacity-40"
             >
               <Send className="h-4 w-4" />
-              Enviar
+              {isStreaming ? "Procesando..." : "Ejecutar consulta"}
             </button>
           </div>
         </form>
       </main>
 
-      {/* Panel Derecho: Inspector de Memoria, Qdrant Shield y Benchmark */}
+      {/* Panel Derecho: Cabina de Telemetría 3D */}
       {showInspector && (
-        <div className="hidden lg:block w-[350px] shrink-0">
+        <div className="hidden lg:block w-[360px] shrink-0">
           <InspectorPanel
             userId={userId}
             threadId={threadId}
